@@ -3,7 +3,7 @@
 # AUTHOR: Chan Jun Jie
 # DATE:   2025-12-02
 # PURPOSE: Query OneMap API to retrieve GPS coordinates (lat/long) for all unique addresses
-# INPUTS:  data/clean_hdb_data.csv
+# INPUTS:  data/cleaned_resale_prices.csv
 # OUTPUTS: data/hdb_coordinates.csv
 # ==============================================================================
 
@@ -12,7 +12,7 @@ library(httr) # for sending HTTP requests
 library(jsonlite) # reads JSON to output R dataframes
 
 # Read cleaned data from 01_cleaning.R
-df <- read_csv("data/cleaned_resale_prices.csv")
+df <- read_csv("data/processed/cleaned_resale_prices.csv")
 
 # Create a list of unique addresses using `block` + `street_name`
 unique_addresses <- df %>%
@@ -72,5 +72,6 @@ for (i in 1 : total_addresses) {
 
 # -------------------- Save results to a new csv -------------------- #
 final_coords <- bind_rows(results) # convert list of tibbles of (address, lat, long) into one dataframe
-write_csv(final_coords, "data/hdb_coordinates.csv")
-print("Geospatial data saved to 'data/hdb_coordinates.csv'")
+output_filepath <- "data/external/hdb_coordinates.csv"
+write_csv(final_coords, output_filepath)
+print(paste("Geospatial data saved to '", output_filepath, "'", sep = ""))

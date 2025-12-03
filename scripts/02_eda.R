@@ -1,7 +1,7 @@
 library(tidyverse)
 library(ggplot2)
 
-df <- read_csv("data/cleaned_resale_prices.csv")
+df <- read_csv("data/processed/cleaned_resale_prices.csv")
 
 # Line Chart of Resale Price against Floor Area (sqm)
 ggplot(data = df, aes(x = floor_area_sqm, y = resale_price)) +

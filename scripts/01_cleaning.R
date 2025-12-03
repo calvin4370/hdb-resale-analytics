@@ -1,7 +1,7 @@
 library(tidyverse)
 library(lubridate)
 
-raw_data <- read_csv("data/raw_resale_prices.csv")
+raw_data <- read_csv("data/raw/raw_resale_prices.csv")
 
 clean_data <- raw_data %>%
   mutate(
@@ -20,4 +20,4 @@ clean_data <- raw_data %>%
   )
 
 # Save cleaned csv
-write_csv(clean_data, "data/cleaned_resale_prices.csv")
+write_csv(clean_data, "data/processed/cleaned_resale_prices.csv")

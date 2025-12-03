@@ -12,10 +12,10 @@ source("scripts/00_utils.R") # Import haversine_km function
 
 
 # -------------------- Load data -------------------- #
-resale_prices <- read_csv("data/cleaned_resale_prices.csv")
-hdb_address_coords <- read_csv("data/hdb_coordinates.csv")
+resale_prices <- read_csv("data/processed/cleaned_resale_prices.csv")
+hdb_address_coords <- read_csv("data/external/hdb_coordinates.csv")
 
-mrt_coords <- read_csv("data/mrt_lrt_stations.csv") %>%
+mrt_coords <- read_csv("data/external/mrt_lrt_stations.csv") %>%
   rename(station_name = STATION_NAME_ENGLISH, lat = LATITUDE, long = LONGITUDE) %>%
   select(station_name, lat, long)
 
@@ -70,6 +70,6 @@ summary(enriched_data$distance_to_nearest_mrt)
 
 
 # ---------- Save the enriched data (with new features) to a new csv ---------- #
-output_filepath <- "data/enriched_resale_prices.csv"
+output_filepath <- "data/processed/enriched_resale_prices.csv"
 write_csv(enriched_data, output_filepath)
 print(paste("Saved enriched_data to", output_filepath))
