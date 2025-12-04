@@ -1,7 +1,7 @@
 # ==============================================================================
-# SCRIPT: 02_geocoding.R
-# AUTHOR: Chan Jun Jie
-# DATE:   2025-12-02
+# SCRIPT:  02_geocoding.R
+# AUTHOR:  Chan Jun Jie
+# DATE:    2025-12-02
 # PURPOSE: Query OneMap API to retrieve GPS coordinates (lat/long) for all unique addresses
 # INPUTS:  data/processed/cleaned_resale_prices.csv
 # OUTPUTS: data/external/hdb_coordinates.csv

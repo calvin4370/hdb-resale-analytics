@@ -1,3 +1,12 @@
+# ==============================================================================
+# SCRIPT:  04_eda.R
+# AUTHOR:  Chan Jun Jie
+# DATE:    2025-12-03
+# PURPOSE: Perform Exploratory Data Analysis (EDA) on enriched dataset to check 
+#          regression assumptions and visualize key relationships
+# INPUTS:  data/processed/enriched_resale_prices.csv
+# ==============================================================================
+
 library(tidyverse)
 library(ggplot2)
 
