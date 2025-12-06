@@ -181,8 +181,8 @@ boxplot_distance_to_nearest_mrt <- ggplot(data = df, aes(x = distance_to_nearest
   theme(axis.text.y = element_blank(), axis.ticks.y = element_blank()) + # remove unnecessary y-axis labels
   labs(title = "Boxplot of Distance to nearest MRT/LRT", x = "Distance (km)")
 
-print(hist_dist_to_mrt)
-print(box_dist_to_mrt)
+print(hist_distance_to_nearest_mrt)
+print(boxplot_distance_to_nearest_mrt)
 
 # Check outliers with distance_to_nearest_mrt > 3km
 outlier_dist_to_mrt <- df %>% 
@@ -242,10 +242,11 @@ ggsave("output/figures/bar_town.png", plot = bar_town, width = 12, height = 6)
 scatter_floor_area <- ggplot(data = df, aes(x = floor_area_sqm, y = resale_price / 1000)) +
   geom_point(alpha = 0.1, color = "seagreen") + 
   geom_smooth(method = "lm", color = "red", se = FALSE) + # draw line of best fit
+  scale_x_continuous(breaks = seq(0, 200, by = 25), limits = c(0, 200)) +
+  scale_y_continuous(breaks = seq(0, 1750, by = 250), limits = c(0, 1750)) +
   theme_minimal() +
   labs(
-    title = "Resale Price vs. Floor Area",
-    subtitle = "Strong positive correlation confirms size is a key driver",
+    title = "Resale Price ($'000) vs. Floor Area (sqm)",
     x = "Floor Area (sqm)",
     y = "Resale Price ($'000)"
   )
@@ -256,52 +257,58 @@ ggsave("output/figures/scatter_area.png", plot = scatter_floor_area, width = 8, 
 
 
 # 2. Scatter plot of Resale Price ($'000) vs. Remaining Lease (Years) ----------
-scatter_lease <- ggplot(data = df, aes(x = remaining_lease_numeric, y = resale_price / 1000)) +
+scatter_remaining_lease <- ggplot(data = df, aes(x = remaining_lease_numeric, y = resale_price / 1000)) +
   geom_point(alpha = 0.1, color = "orange") + 
   geom_smooth(method = "lm", color = "black", se = FALSE) +
+  scale_x_continuous(breaks = seq(20, 100, by = 20), limits = c(20, 100)) +
+  scale_y_continuous(breaks = seq(0, 1750, by = 250), limits = c(0, 1750)) +
   theme_minimal() +
   labs(
-    title = "Resale Price vs. Remaining Lease",
+    title = "Resale Price ($'000) vs. Remaining Lease (Years)",
     x = "Remaining Lease (Years)",
     y = "Resale Price ($'000)"
   )
 
-print(scatter_lease)
-ggsave("output/figures/scatter_lease.png", plot = scatter_lease, width = 8, height = 6)
+print(scatter_remaining_lease)
+ggsave("output/figures/scatter_lease.png", plot = scatter_remaining_lease, width = 8, height = 6)
 
 
-# 3. Scatter plot of Resale Price ($'000) vs. storey_range_floored -------------
+# NOTE: storey_range_floored is an ORDINAL numeric data type, with values 1, 4, 7... etc.
+# so better to plot boxplot
 
-
-# 4. Scatter plot of Resale Price ($'000) vs. Distance to CBD (km) -------------
-scatter_cbd <- ggplot(data = df, aes(x = distance_to_cbd, y = resale_price / 1000)) +
-  geom_point(alpha = 0.1, color = "firebrick") + 
+# 3. Scatter plot of Resale Price ($'000) vs. Distance to CBD (km) -------------
+scatter_distance_to_cbd <- ggplot(data = df, aes(x = distance_to_cbd, y = resale_price / 1000)) +
+  geom_point(alpha = 0.05, color = "firebrick") + 
   geom_smooth(method = "lm", color = "black", se = FALSE) +
+  scale_x_continuous(breaks = seq(0, 20, by = 5), limits = c(0, 20)) +
+  scale_y_continuous(breaks = seq(0, 1750, by = 250), limits = c(0, 1750)) +
   theme_minimal() +
   labs(
-    title = "Resale Price vs. Distance to CBD",
+    title = "Resale Price ($'000) vs. Distance to CBD (km)",
     x = "Distance to CBD (km)",
     y = "Resale Price ($'000)"
   )
 
-print(scatter_cbd)
-ggsave("output/figures/scatter_cbd.png", plot = scatter_cbd, width = 8, height = 6)
+print(scatter_distance_to_cbd)
+ggsave("output/figures/scatter_cbd.png", plot = scatter_distance_to_cbd, width = 8, height = 6)
 
 
-# 5. Scatter plot of Resale Price ($'000) vs. Distance to nearest MRT/LRT (km) -
+# 4. Scatter plot of Resale Price ($'000) vs. Distance to nearest MRT/LRT (km) -
 scatter_distance_to_nearest_mrt <- ggplot(data = df, aes(x = distance_to_nearest_mrt, y = resale_price / 1000)) +
-  geom_point(alpha = 0.1, color = "dodgerblue") + 
+  geom_point(alpha = 0.05, color = "dodgerblue") + 
   geom_smooth(method = "lm", color = "red", se = FALSE) +
-  scale_x_continuous(limits = c(0, 3)) + # Zoom in on the main cluster < 3km
+  scale_x_continuous(limits = c(0, 3)) + # zoom in on the main cluster < 3km
+  scale_y_continuous(breaks = seq(0, 1750, by = 250), limits = c(0, 1750)) +
   theme_minimal() +
   labs(
-    title = "Resale Price vs. Distance to nearest MRT/LRT",
+    title = "Resale Price ($'000) vs. Distance to nearest MRT/LRT (km)",
     x = "Distance to MRT (km)",
     y = "Resale Price ($'000)"
   )
 
 print(scatter_distance_to_nearest_mrt)
-ggsave("output/figures/scatter_distance_to_nearest_mrt.png", plot = scatter_mrt, width = 8, height = 6)
+ggsave("output/figures/scatter_distance_to_nearest_mrt.png", plot = scatter_distance_to_nearest_mrt, width = 8, height = 6)
+
 
 # ------------------------------------------------------------------------------
 # Section 4: Multivariate Analysis
