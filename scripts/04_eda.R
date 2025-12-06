@@ -237,7 +237,71 @@ ggsave("output/figures/bar_town.png", plot = bar_town, width = 12, height = 6)
 # Section 3: Bivariate Analysis
 # ------------------------------------------------------------------------------
 
+# Scatter plots of Resale Price vs Numeric Variables ---------------------------
+# 1. Scatter plot of Resale Price ($'000) vs. Floor Area -----------------------
+scatter_floor_area <- ggplot(data = df, aes(x = floor_area_sqm, y = resale_price / 1000)) +
+  geom_point(alpha = 0.1, color = "seagreen") + 
+  geom_smooth(method = "lm", color = "red", se = FALSE) + # draw line of best fit
+  theme_minimal() +
+  labs(
+    title = "Resale Price vs. Floor Area",
+    subtitle = "Strong positive correlation confirms size is a key driver",
+    x = "Floor Area (sqm)",
+    y = "Resale Price ($'000)"
+  )
 
+# Strong positive correlation suggests Floor Area is a key driver of Resale Price
+print(scatter_floor_area)
+ggsave("output/figures/scatter_area.png", plot = scatter_floor_area, width = 8, height = 6)
+
+
+# 2. Scatter plot of Resale Price ($'000) vs. Remaining Lease (Years) ----------
+scatter_lease <- ggplot(data = df, aes(x = remaining_lease_numeric, y = resale_price / 1000)) +
+  geom_point(alpha = 0.1, color = "orange") + 
+  geom_smooth(method = "lm", color = "black", se = FALSE) +
+  theme_minimal() +
+  labs(
+    title = "Resale Price vs. Remaining Lease",
+    x = "Remaining Lease (Years)",
+    y = "Resale Price ($'000)"
+  )
+
+print(scatter_lease)
+ggsave("output/figures/scatter_lease.png", plot = scatter_lease, width = 8, height = 6)
+
+
+# 3. Scatter plot of Resale Price ($'000) vs. storey_range_floored -------------
+
+
+# 4. Scatter plot of Resale Price ($'000) vs. Distance to CBD (km) -------------
+scatter_cbd <- ggplot(data = df, aes(x = distance_to_cbd, y = resale_price / 1000)) +
+  geom_point(alpha = 0.1, color = "firebrick") + 
+  geom_smooth(method = "lm", color = "black", se = FALSE) +
+  theme_minimal() +
+  labs(
+    title = "Resale Price vs. Distance to CBD",
+    x = "Distance to CBD (km)",
+    y = "Resale Price ($'000)"
+  )
+
+print(scatter_cbd)
+ggsave("output/figures/scatter_cbd.png", plot = scatter_cbd, width = 8, height = 6)
+
+
+# 5. Scatter plot of Resale Price ($'000) vs. Distance to nearest MRT/LRT (km) -
+scatter_distance_to_nearest_mrt <- ggplot(data = df, aes(x = distance_to_nearest_mrt, y = resale_price / 1000)) +
+  geom_point(alpha = 0.1, color = "dodgerblue") + 
+  geom_smooth(method = "lm", color = "red", se = FALSE) +
+  scale_x_continuous(limits = c(0, 3)) + # Zoom in on the main cluster < 3km
+  theme_minimal() +
+  labs(
+    title = "Resale Price vs. Distance to nearest MRT/LRT",
+    x = "Distance to MRT (km)",
+    y = "Resale Price ($'000)"
+  )
+
+print(scatter_distance_to_nearest_mrt)
+ggsave("output/figures/scatter_distance_to_nearest_mrt.png", plot = scatter_mrt, width = 8, height = 6)
 
 # ------------------------------------------------------------------------------
 # Section 4: Multivariate Analysis
