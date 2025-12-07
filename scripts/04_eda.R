@@ -137,12 +137,16 @@ ggsave("output/figures/hist_lease.png", plot = hist_remaining_lease, width = 8, 
 # 3. storey_range_floored ------------------------------------------------------
 hist_storey_range_floored <- ggplot(data = df, aes(x = storey_range_floored)) +
   geom_histogram(fill = "purple", color = "white", binwidth = 3, boundary = 1) +
+  scale_x_continuous(breaks = seq(1, 37, by = 3), limits = c(1, 37)) + 
+  scale_y_continuous(breaks = seq(0, 90000, by = 10000), limits = c(0, 90000)) +
   theme_minimal() +
   labs(
     title = "Distribution of Storey Levels",
     x = "Storey Range (Lower Bound)",
-    y = "Count"
-  )
+    y = "Count",
+    caption = "Note: 366 ultra-high-rise units (>37 floors) were excluded from the visual for readability."
+  ) +
+  theme(plot.caption = element_text(hjust = 0, color = "darkgrey", face = "italic"))
 
 print(hist_storey_range_floored)
 ggsave("output/figures/hist_storey.png", plot = hist_storey_range_floored, width = 8, height = 6)
@@ -251,15 +255,19 @@ scatter_floor_area <- ggplot(data = df, aes(x = floor_area_sqm, y = resale_price
     y = "Resale Price ($'000)"
   )
 
-# Strong positive correlation suggests Floor Area is a key driver of Resale Price
+# Strong positive linear relationship between Floor Area and Resale price,
+# suggests Floor Area is a key driver of Resale Price
+# However, heteroskedasticity may be present based on the increasing spread of
+# Resale Price ($'000) as Floor Area (sqm) increases
+# May need to log transform floor area in the linear regression model
 print(scatter_floor_area)
 ggsave("output/figures/scatter_area.png", plot = scatter_floor_area, width = 8, height = 6)
 
 
 # 2. Scatter plot of Resale Price ($'000) vs. Remaining Lease (Years) ----------
 scatter_remaining_lease <- ggplot(data = df, aes(x = remaining_lease_numeric, y = resale_price / 1000)) +
-  geom_point(alpha = 0.1, color = "orange") + 
-  geom_smooth(method = "lm", color = "black", se = FALSE) +
+  geom_point(alpha = 0.01, color = "orange") + 
+  geom_smooth(method = "lm", color = "black", se = FALSE) + # draw best-fit line
   scale_x_continuous(breaks = seq(20, 100, by = 20), limits = c(20, 100)) +
   scale_y_continuous(breaks = seq(0, 1750, by = 250), limits = c(0, 1750)) +
   theme_minimal() +
@@ -269,11 +277,13 @@ scatter_remaining_lease <- ggplot(data = df, aes(x = remaining_lease_numeric, y 
     y = "Resale Price ($'000)"
   )
 
+# Positive correlation between Remaining Lease (years) and Resale Price ($'000)
+# However, hetero skedasticity may be present
 print(scatter_remaining_lease)
 ggsave("output/figures/scatter_lease.png", plot = scatter_remaining_lease, width = 8, height = 6)
 
 
-# NOTE: storey_range_floored is an ORDINAL numeric data type, with values 1, 4, 7... etc.
+# NOTE: storey_range_floored is a DISCRETE numeric data type (ordinal), with values 1, 4, 7... etc.
 # so better to plot boxplot
 
 # 3. Scatter plot of Resale Price ($'000) vs. Distance to CBD (km) -------------
@@ -289,6 +299,7 @@ scatter_distance_to_cbd <- ggplot(data = df, aes(x = distance_to_cbd, y = resale
     y = "Resale Price ($'000)"
   )
 
+# Negative linear relationship between Distance to CBD and Resale Price
 print(scatter_distance_to_cbd)
 ggsave("output/figures/scatter_cbd.png", plot = scatter_distance_to_cbd, width = 8, height = 6)
 
@@ -297,19 +308,112 @@ ggsave("output/figures/scatter_cbd.png", plot = scatter_distance_to_cbd, width =
 scatter_distance_to_nearest_mrt <- ggplot(data = df, aes(x = distance_to_nearest_mrt, y = resale_price / 1000)) +
   geom_point(alpha = 0.05, color = "dodgerblue") + 
   geom_smooth(method = "lm", color = "red", se = FALSE) +
-  scale_x_continuous(limits = c(0, 3)) + # zoom in on the main cluster < 3km
+  scale_x_continuous(breaks = seq(0, 2.5, by = 0.5), limits = c(0, 2.5)) + # zoom in on the main cluster < 3km
   scale_y_continuous(breaks = seq(0, 1750, by = 250), limits = c(0, 1750)) +
   theme_minimal() +
   labs(
     title = "Resale Price ($'000) vs. Distance to nearest MRT/LRT (km)",
     x = "Distance to MRT (km)",
+    y = "Resale Price ($'000)",
+    caption = "Note: 46 HDBS (at CHANGI VILLAGE RD) with distance_from_nearest_mrt > 3km were excluded from the scatterplot for readability."
+  ) +
+  theme(plot.caption = element_text(hjust = 0, color = "darkgrey", face = "italic"))
+
+# Negative linear relationship between Distance to nearest MRT/LRT and Resale Price
+# Possible heteroskedasticity present
+print(scatter_distance_to_nearest_mrt)
+ggsave("output/figures/scatter_distance_to_nearest_mrt.png", plot = scatter_distance_to_nearest_mrt, width = 8, height = 6)
+
+
+# Boxplots of Resale Price vs Discrete/Categorical Variables -------------------
+# 5. Boxplot of Resale Price ($'000) vs. Storey Range --------------------------
+# Note: used a boxplot because storey_range_floored is discrete with steps of 3 
+# We group by 'storey_range_floored' so ggplot draws a box for each level.
+box_storey_range_floored <- ggplot(data = df, aes(x = storey_range_floored, y = resale_price / 1000)) +
+  geom_boxplot(aes(group = storey_range_floored), fill = "purple", alpha = 0.3) +
+  geom_smooth(method = "lm", color = "black", se = FALSE) + # line of best fit
+  
+  scale_y_continuous(breaks = seq(0, 1750, by = 250), limits = c(0, 1750)) +
+  scale_x_continuous(breaks = seq(1, 50, by = 3)) +
+  theme_minimal() +
+  labs(
+    title = "Boxplot of Resale Price ($'000) vs. Storey Range (Lower Bound)",
+    x = "Storey Floor (Lower Bound)",
     y = "Resale Price ($'000)"
   )
 
-print(scatter_distance_to_nearest_mrt)
-ggsave("output/figures/scatter_distance_to_nearest_mrt.png", plot = scatter_distance_to_nearest_mrt, width = 8, height = 6)
+# Positive linear relationship between Storey Range and Resale Price
+print(box_storey_range_floored)
+ggsave("output/figures/box_storey_range_floored.png", plot = box_storey_range_floored, width = 8, height = 6)
+
+
+# 6. Boxplot of Resale Price ($'000) vs. Flat Type -----------------------------
+# Note: reorder(flat_type, resale_price, FUN = median) arranges the flat_type boxes in increasing MEDIAN resale_price; note that default FUN is mean
+box_flat_type <- ggplot(data = df, aes(x = reorder(flat_type, resale_price), FUN = median), y = resale_price / 1000)) +
+  geom_boxplot(fill = "steelblue", alpha = 0.6) +
+  
+  scale_y_continuous(breaks = seq(0, 1750, by = 250), limits = c(0, 1750)) +
+  theme_minimal() +
+  labs(
+    title = "Resale Price vs. Flat Type",
+    x = "Flat Type",
+    y = "Resale Price ($'000)"
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) # angle the x-axis labels to fit them better
+
+print(box_flat_type)
+ggsave("output/figures/box_flat_type.png", plot = box_flat_type, width = 8, height = 6)
+
+
+# 7. Boxplot of Resale Price ($'000) vs. Town ----------------------------------
+# Note: reorder(town, resale_price, FUN = median) arranges the town boxes in increasing MEDIAN resale_price
+box_town <- ggplot(data = df, aes(x = reorder(town, resale_price, FUN = median), y = resale_price / 1000)) +
+  geom_boxplot(fill = "seagreen", alpha = 0.6) +
+  
+  scale_y_continuous(breaks = seq(0, 1750, by = 250), limits = c(0, 1750)) +
+  theme_minimal() +
+  labs(
+    title = "Resale Price vs. Town",
+    subtitle = "Sorted from lowest median price (Left) to highest (Right)",
+    x = "Town",
+    y = "Resale Price ($'000)"
+  ) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+
+print(box_town)
+ggsave("output/figures/box_town.png", plot = box_town, width = 12, height = 6)
+
+
+# Temporal Analysis ------------------------------------------------------------
+# 8. Scatterplot of Resale Price vs Time ---------------------------------------
+summary(df$resale_date)
+scatter_time <- ggplot(data = df, aes(x = resale_date, y = resale_price / 1000)) +
+  geom_point(alpha = 0.05, color = "darkgrey") + 
+  
+  geom_smooth(color = "blue", linewidth = 1) + # use default LOESS curve to see trend
+  
+  scale_y_continuous(breaks = seq(0, 1750, by = 250), limits = c(0, 1750)) +
+  scale_x_date(
+    date_breaks = "1 year",
+    date_labels = "%Y", # format label as just the year "2017", "2018"
+    limits = as.Date(c("2017-01-01", "2025-12-31"))
+  ) +
+  
+  theme_minimal() +
+  labs(
+    title = "Resale Price Over Time (Jan 2017 - Dec 2025)",
+    x = "Date",
+    y = "Resale Price ($'000)"
+  )
+
+# There is a rising trend in Resale Prices over time from Jan 2017 to Dec 2025
+print(scatter_time)
+ggsave("output/figures/scatter_time.png", plot = scatter_time, width = 10, height = 6)
 
 
 # ------------------------------------------------------------------------------
 # Section 4: Multivariate Analysis
 # ------------------------------------------------------------------------------
+
+# Correlation Matrix between all numeric variables to detect multicollinearity
+
