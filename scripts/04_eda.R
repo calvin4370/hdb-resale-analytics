@@ -9,6 +9,7 @@
 
 library(tidyverse)
 library(ggplot2)
+library(ggcorrplot)
 
 df <- read_csv("data/processed/enriched_resale_prices.csv")
 
@@ -407,8 +408,10 @@ scatter_time <- ggplot(data = df, aes(x = resale_date, y = resale_price / 1000))
   )
 
 # There is a rising trend in Resale Prices over time from Jan 2017 to Dec 2025
+# with a period of decreasing resale prices between 2019 and 2o20 (likely due
+# to poor economic conditions during the COVID-19 pandemic)
 print(scatter_time)
-ggsave("output/figures/scatter_time.png", plot = scatter_time, width = 10, height = 6)
+ggsave("output/figures/scatter_time.png", plot = scatter_time, width = 8, height = 6)
 
 
 # ------------------------------------------------------------------------------
@@ -416,4 +419,37 @@ ggsave("output/figures/scatter_time.png", plot = scatter_time, width = 10, heigh
 # ------------------------------------------------------------------------------
 
 # Correlation Matrix between all numeric variables to detect multicollinearity
+# Select all the relevant numeric variables
+numeric_vars <- df %>%
+  select(
+    resale_price, 
+    floor_area_sqm, 
+    storey_range_floored,
+    remaining_lease_numeric, 
+    distance_to_cbd, 
+    distance_to_nearest_mrt
+  )
+
+print(colnames(numeric_vars))
+
+cor_matrix <- cor(numeric_vars, use = "complete.obs") # use = "complete.obs" just ignores NAs
+print(round(cor_matrix, 2))
+
+
+# Heatmap to better visualise the above results
+# RED = positive linear relationship, BLUE = negative linear relationship
+# WHITE = no linear relationship
+heatmap <- ggcorrplot(cor_matrix,
+                      method = "square",       # shape of visualisation elements
+                      type = "lower",          # only show the lower triangle
+                      lab = TRUE,              # show correlation coefficient labels
+                      lab_size = 4,            
+                      title = "Heatmap of Key Drivers of Resale Price",
+                      colors = c("blue", "white", "red"), # neg, nothing, pos linear relationship
+                      tl.cex = 12,
+                      ggtheme = ggplot2::theme_minimal()
+)
+
+print(heatmap)
+ggsave("output/figures/heatmap.png", plot = heatmap, width = 8, height = 6)
 
