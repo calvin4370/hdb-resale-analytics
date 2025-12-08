@@ -64,6 +64,57 @@ hist_resale_price <- ggplot(data = df, aes(x = resale_price / 1000)) +
 print(hist_resale_price)
 ggsave("output/figures/hist_resale_price.png", plot = hist_resale_price, width = 8, height = 6)
 
+# Observations:
+# - Raw resale prices are heavily right-skewed with a long right tail
+# - We should try a log transformation on resale prices
+
+# Histogram of log(Resale Price) (log($))
+mean_log_resale_price <- mean(log(df$resale_price), na.rm = TRUE)
+hist_log_resale_price <- ggplot(data = df, aes(x = log(resale_price))) +
+  geom_histogram(fill = "slateblue", color = "white", bins = 50) +
+  
+  # Scale the y axis labels
+  scale_y_continuous(labels = scales::comma, breaks = seq(0, 14000, by = 2000), limits = c(0, 14000)) +
+  
+  # Add vertical line for the mean and label it
+  geom_vline(
+    xintercept = mean_log_resale_price,
+    linetype = "dashed",
+    color = "black",
+    linewidth = 1
+  ) +
+  annotate(
+    "text",
+    x = mean_log_resale_price + 0.25,
+    y = Inf, # Push it up to the max
+    label = paste0(
+      "Mean(log price) = ", round(mean_log_resale_price, 2),
+      "\nGeometric mean ≈ $", scales::comma(round(exp(mean_log_resale_price), 0))
+    ),
+    vjust = 1.5,
+    hjust = 0,
+    size = 3.5
+  ) +
+  
+  theme_minimal() +
+  labs(
+    title = "Histogram of Log-Transformed HDB Resale Prices",
+    x = "log(Resale Price)",
+    y = "Count",
+    caption = "log(resale price) much more closely resembles a normal distribution"
+  )
+
+print(hist_log_resale_price)
+ggsave(
+  "output/figures/hist_log_resale_price.png",
+  plot = hist_log_resale_price,
+  width = 8,
+  height = 6
+)
+
+# Observations:
+# - log(resale price) much more closely resembles a normal distribution
+
 
 # Check numerical independent variables for outliers and multimodality ---------
 # Histograms and Boxplots of numerical independent variables -------------------
@@ -243,7 +294,7 @@ ggsave("output/figures/bar_town.png", plot = bar_town, width = 12, height = 6)
 # ------------------------------------------------------------------------------
 
 # Scatter plots of Resale Price vs Numeric Variables ---------------------------
-# 1. Scatter plot of Resale Price ($'000) vs. Floor Area -----------------------
+# 1a. Scatter plot of Resale Price ($'000) vs. Floor Area ----------------------
 scatter_floor_area <- ggplot(data = df, aes(x = floor_area_sqm, y = resale_price / 1000)) +
   geom_point(alpha = 0.1, color = "seagreen") + 
   geom_smooth(method = "lm", color = "red", se = FALSE) + # draw line of best fit
@@ -258,18 +309,39 @@ scatter_floor_area <- ggplot(data = df, aes(x = floor_area_sqm, y = resale_price
 
 # Strong positive linear relationship between Floor Area and Resale price,
 # suggests Floor Area is a key driver of Resale Price
-# However, heteroskedasticity may be present based on the increasing spread of
-# Resale Price ($'000) as Floor Area (sqm) increases
-# May need to log transform floor area in the linear regression model
+# However, heteroskedasticity (different variance of price) may be present based
+# on the increasing spread of Resale Price ($'000) as Floor Area (sqm) increases
+# May need to log transform Resale Price in the linear regression model
 print(scatter_floor_area)
 ggsave("output/figures/scatter_area.png", plot = scatter_floor_area, width = 8, height = 6)
 
 
-# 2. Scatter plot of Resale Price ($'000) vs. Remaining Lease (Years) ----------
+# 1b. Scatter plot of log(Resale Price) vs. Floor Area -------------------------
+scatter_log_price_vs_floor_area <- ggplot(data = df, aes(x = floor_area_sqm, y = log(resale_price))) +
+  geom_point(alpha = 0.1, color = "seagreen") + 
+  geom_smooth(method = "lm", color = "red", se = FALSE) + # draw line of best fit
+
+  scale_x_continuous(breaks = seq(0, 200, by = 25), limits = c(0, 200)) +
+  scale_y_continuous(breaks = seq(11, 15, by = 1), limits = c(11, 15)) +
+
+  theme_minimal() +
+  labs(
+    title = "log(Resale Price) vs. Floor Area (sqm)",
+    x = "Floor Area (sqm)",
+    y = "log(Resale Price)"
+  )
+
+# Homoskedasticity assumption is now reasonably satisfied
+print(scatter_log_price_vs_floor_area)
+ggsave("output/figures/scatter_log_price_vs_floor_area.png", plot = scatter_log_price_vs_floor_area, width = 8, height = 6)
+
+
+
+# 2a. Scatter plot of Resale Price ($'000) vs. Remaining Lease (Years) ---------
 scatter_remaining_lease <- ggplot(data = df, aes(x = remaining_lease_numeric, y = resale_price / 1000)) +
-  geom_point(alpha = 0.01, color = "orange") + 
+  geom_point(alpha = 0.05, color = "orange") + 
   geom_smooth(method = "lm", color = "black", se = FALSE) + # draw best-fit line
-  scale_x_continuous(breaks = seq(20, 100, by = 20), limits = c(20, 100)) +
+  scale_x_continuous(breaks = seq(40, 100, by = 20), limits = c(40, 100)) +
   scale_y_continuous(breaks = seq(0, 1750, by = 250), limits = c(0, 1750)) +
   theme_minimal() +
   labs(
@@ -282,6 +354,27 @@ scatter_remaining_lease <- ggplot(data = df, aes(x = remaining_lease_numeric, y 
 # However, hetero skedasticity may be present
 print(scatter_remaining_lease)
 ggsave("output/figures/scatter_lease.png", plot = scatter_remaining_lease, width = 8, height = 6)
+
+
+# 2b. Scatter plot of log(Resale Price) vs. Remaining Lease (Years) ------------
+scatter_log_price_vs_remaining_lease <- ggplot(data = df, aes(x = remaining_lease_numeric, y = log(resale_price))) +
+  geom_point(alpha = 0.05, color = "orange") + 
+  geom_smooth(method = "lm", color = "black", se = FALSE) + # draw best-fit line
+
+  scale_x_continuous(breaks = seq(40, 100, by = 20), limits = c(40, 100)) +
+  scale_y_continuous(breaks = seq(11, 15, by = 1), limits = c(11, 15)) +
+  
+  theme_minimal() +
+  labs(
+    title = "log(Resale Price) vs. Remaining Lease (Years)",
+    x = "Remaining Lease (Years)",
+    y = "log(Resale Price)"
+  )
+
+# Homoskedasticity assumption is now reasonably satisfied
+print(scatter_log_price_vs_remaining_lease)
+ggsave("output/figures/scatter_log_price_vs_remaining_lease.png", 
+       plot = scatter_log_price_vs_remaining_lease, width = 8, height = 6)
 
 
 # NOTE: storey_range_floored is a DISCRETE numeric data type (ordinal), with values 1, 4, 7... etc.
@@ -350,7 +443,7 @@ ggsave("output/figures/box_storey_range_floored.png", plot = box_storey_range_fl
 
 # 6. Boxplot of Resale Price ($'000) vs. Flat Type -----------------------------
 # Note: reorder(flat_type, resale_price, FUN = median) arranges the flat_type boxes in increasing MEDIAN resale_price; note that default FUN is mean
-box_flat_type <- ggplot(data = df, aes(x = reorder(flat_type, resale_price), FUN = median), y = resale_price / 1000)) +
+box_flat_type <- ggplot(data = df, aes(x = reorder(flat_type, resale_price, FUN = median), y = resale_price / 1000)) +
   geom_boxplot(fill = "steelblue", alpha = 0.6) +
   
   scale_y_continuous(breaks = seq(0, 1750, by = 250), limits = c(0, 1750)) +
@@ -419,10 +512,13 @@ ggsave("output/figures/scatter_time.png", plot = scatter_time, width = 8, height
 # ------------------------------------------------------------------------------
 
 # Correlation Matrix between all numeric variables to detect multicollinearity
-# Select all the relevant numeric variables
+# Select all the relevant numeric variables, use log_resale_price now
 numeric_vars <- df %>%
+  mutate(
+    log_resale_price = log(resale_price)
+  ) %>%
   select(
-    resale_price, 
+    log_resale_price,
     floor_area_sqm, 
     storey_range_floored,
     remaining_lease_numeric, 
@@ -453,3 +549,6 @@ heatmap <- ggcorrplot(cor_matrix,
 print(heatmap)
 ggsave("output/figures/heatmap.png", plot = heatmap, width = 8, height = 6)
 
+
+# Save the final cleaned data to use in modelling
+write_csv(df, "data/processed/modelling_resale_prices.csv")
