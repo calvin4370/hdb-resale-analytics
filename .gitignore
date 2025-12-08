@@ -1,3 +1,8 @@
+# My Additions -----------------------------------------------------------------
+# Model artifacts
+output/models/*.rds
+
+# Auto-added by Git for R: -----------------------------------------------------
 # History files
 .Rhistory
 .Rapp.history

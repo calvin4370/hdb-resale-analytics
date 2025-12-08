@@ -1,0 +1,90 @@
+> print(model_lm_baseline)
+Linear Regression 
+
+175885 samples
+     9 predictor
+
+No pre-processing
+Resampling: Cross-Validated (10 fold) 
+Summary of sample sizes: 158297, 158296, 158296, 158296, 158297, 158297, ... 
+Resampling results:
+
+  RMSE       Rsquared   MAE      
+  0.1037061  0.9103384  0.0805853
+
+Tuning parameter 'intercept' was held constant at a value of TRUE
+> summary(model_lm_baseline$finalModel)
+
+Call:
+lm(formula = .outcome ~ ., data = dat)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-1.23255 -0.06684 -0.00029  0.06436  0.82539 
+
+Coefficients: (1 not defined because of singularities)
+                                     Estimate Std. Error  t value Pr(>|t|)    
+(Intercept)                        -1.212e+02  2.054e-01 -589.820  < 2e-16 ***
+townBEDOK                          -1.652e-02  1.670e-03   -9.892  < 2e-16 ***
+townBISHAN                          1.240e-01  2.404e-03   51.591  < 2e-16 ***
+`townBUKIT BATOK`                  -5.761e-02  2.257e-03  -25.525  < 2e-16 ***
+`townBUKIT MERAH`                   4.074e-02  2.592e-03   15.719  < 2e-16 ***
+`townBUKIT PANJANG`                -1.760e-01  2.507e-03  -70.222  < 2e-16 ***
+`townBUKIT TIMAH`                   2.756e-01  5.101e-03   54.036  < 2e-16 ***
+`townCENTRAL AREA`                  2.806e-02  4.371e-03    6.419 1.37e-10 ***
+`townCHOA CHU KANG`                -1.721e-01  2.825e-03  -60.922  < 2e-16 ***
+townCLEMENTI                        7.904e-02  2.089e-03   37.829  < 2e-16 ***
+townGEYLANG                        -4.508e-02  2.360e-03  -19.104  < 2e-16 ***
+townHOUGANG                        -9.082e-02  1.764e-03  -51.489  < 2e-16 ***
+`townJURONG EAST`                  -1.027e-02  2.566e-03   -4.002 6.27e-05 ***
+`townJURONG WEST`                  -4.453e-02  2.998e-03  -14.852  < 2e-16 ***
+`townKALLANG/WHAMPOA`              -3.879e-02  2.593e-03  -14.959  < 2e-16 ***
+`townMARINE PARADE`                 4.015e-01  3.731e-03  107.597  < 2e-16 ***
+`townPASIR RIS`                     5.719e-03  2.631e-03    2.174 0.029727 *  
+townPUNGGOL                        -1.595e-01  2.377e-03  -67.100  < 2e-16 ***
+townQUEENSTOWN                      9.289e-02  2.286e-03   40.628  < 2e-16 ***
+townSEMBAWANG                      -9.902e-02  3.517e-03  -28.154  < 2e-16 ***
+townSENGKANG                       -2.224e-01  1.996e-03 -111.390  < 2e-16 ***
+townSERANGOON                       5.626e-02  2.327e-03   24.179  < 2e-16 ***
+townTAMPINES                        1.226e-02  2.012e-03    6.093 1.11e-09 ***
+`townTOA PAYOH`                    -1.193e-02  2.274e-03   -5.246 1.55e-07 ***
+townWOODLANDS                      -9.529e-02  3.245e-03  -29.365  < 2e-16 ***
+townYISHUN                         -3.781e-02  2.560e-03  -14.768  < 2e-16 ***
+`flat_type2 ROOM`                   5.120e-02  1.363e-02    3.757 0.000172 ***
+`flat_type3 ROOM`                   1.853e-01  1.360e-02   13.628  < 2e-16 ***
+`flat_type4 ROOM`                   2.490e-01  1.383e-02   18.005  < 2e-16 ***
+`flat_type5 ROOM`                   2.678e-01  1.418e-02   18.886  < 2e-16 ***
+flat_typeEXECUTIVE                  2.448e-01  1.467e-02   16.691  < 2e-16 ***
+`flat_typeMULTI-GENERATION`         3.208e-01  2.053e-02   15.631  < 2e-16 ***
+floor_area_sqm                      8.431e-03  4.839e-05  174.243  < 2e-16 ***
+storey_range_floored                7.689e-03  4.671e-05  164.590  < 2e-16 ***
+flat_model3Gen                     -9.189e-02  1.527e-02   -6.017 1.78e-09 ***
+`flat_modelAdjoined flat`           3.828e-02  8.925e-03    4.289 1.79e-05 ***
+flat_modelApartment                 2.020e-02  7.148e-03    2.826 0.004711 ** 
+flat_modelDBSS                      1.141e-01  6.715e-03   16.988  < 2e-16 ***
+flat_modelImproved                 -5.033e-02  6.457e-03   -7.794 6.50e-15 ***
+`flat_modelImproved-Maisonette`     2.319e-01  2.138e-02   10.847  < 2e-16 ***
+flat_modelMaisonette                6.096e-02  7.194e-03    8.474  < 2e-16 ***
+`flat_modelModel A`                -3.919e-02  6.381e-03   -6.141 8.19e-10 ***
+`flat_modelModel A-Maisonette`      9.006e-02  8.725e-03   10.321  < 2e-16 ***
+`flat_modelModel A2`               -3.315e-02  6.822e-03   -4.859 1.18e-06 ***
+`flat_modelMulti Generation`               NA         NA       NA       NA    
+`flat_modelNew Generation`         -1.080e-02  6.487e-03   -1.666 0.095803 .  
+`flat_modelPremium Apartment`      -1.839e-02  6.446e-03   -2.852 0.004340 ** 
+`flat_modelPremium Apartment Loft` -7.634e-03  1.250e-02   -0.610 0.541566    
+`flat_modelPremium Maisonette`      3.858e-02  2.769e-02    1.393 0.163628    
+flat_modelSimplified               -4.881e-03  6.583e-03   -0.741 0.458399    
+flat_modelStandard                 -4.918e-02  6.646e-03   -7.400 1.37e-13 ***
+flat_modelTerrace                   6.460e-01  1.341e-02   48.183  < 2e-16 ***
+`flat_modelType S1`                 1.170e-01  9.470e-03   12.350  < 2e-16 ***
+`flat_modelType S2`                 9.778e-02  1.113e-02    8.789  < 2e-16 ***
+remaining_lease_numeric             1.035e-02  3.088e-05  335.091  < 2e-16 ***
+distance_to_cbd                    -2.274e-02  3.156e-04  -72.029  < 2e-16 ***
+distance_to_nearest_mrt            -1.321e-01  8.508e-04 -155.264  < 2e-16 ***
+resale_year                         6.572e-02  1.010e-04  650.599  < 2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.1037 on 175828 degrees of freedom
+Multiple R-squared:  0.9104,	Adjusted R-squared:  0.9104 
+F-statistic: 3.19e+04 on 56 and 175828 DF,  p-value: < 2.2e-16
