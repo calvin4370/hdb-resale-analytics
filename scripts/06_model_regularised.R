@@ -12,9 +12,9 @@
 
 library(tidyverse)
 library(caret) 
-library(glmnet)
+library(glmnet) # for Generalised Linear Regression with Elastic Net
 
-# Load data and prepare it for modelling ---------------------------------------
+# Load data and prepare it for modelling (same as in previous scripts) ---------
 df <- read_csv("data/processed/modelling_resale_prices.csv")
 
 model_df <- df %>%
@@ -53,8 +53,8 @@ set.seed(123) # for reproducability
 # Create a vector of row numbers that belong in the Training set
 training_indices <- createDataPartition(
   y = model_df$log_resale_price,  # target for Stratified Sampling
-  p = 0.8,              # 80% for Training
-  list = FALSE          # Return a vector of row numbers, not a list
+  p = 0.8,              # use 80% of rows for training set
+  list = FALSE          # return a vector of row numbers, not a list
 )
 
 training_set <- model_df[training_indices, ]
