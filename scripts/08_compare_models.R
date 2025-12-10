@@ -131,3 +131,4 @@ best_model_performance_plot <- ggplot(test_set, aes(x = actual_real_price, y = p
   theme_minimal()
 
 print(best_model_performance_plot)
+ggsave("output/figures/best_model_performance.png", plot = best_model_performance_plot, width = 8, height = 6)
