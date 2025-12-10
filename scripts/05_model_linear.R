@@ -65,7 +65,7 @@ print(dim(test_set))
 
 # Train Linear Regression Models ===============================================
 
-# Set up training controls for K-Fold Cross Validation ------------------------
+# Set up training controls for K-Fold Cross Validation -------------------------
 train_control <- trainControl(
   method = "cv", # use K-Fold Cross Validation
   number = 10    # with K = 10
