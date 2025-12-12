@@ -16,7 +16,7 @@ library(tidyverse)
 # Load and prepare data --------------------------------------------------------
 # Must be in the same structure (factors for categorical variables) as the
 # modelling df used to train the xgboost model
-df <- read_csv(here("data", "processed", "modelling_resale_prices.csv")) %>%
+df <- read_csv("data/processed/modelling_resale_prices.csv") %>%
   mutate(
     town = as.factor(town),
     flat_type = as.factor(flat_type),
@@ -55,8 +55,8 @@ address_lookup <- df %>%
     .groups = "drop" # turn off the group_by
   )
 
-# Load Model
-model_xgboost <- readRDS(here("output", "models", "model_xgboost.rds"))
+# Load Model from app/models
+model_xgboost <- readRDS("models/model_xgboost.rds")
 
 
 # ==============================================================================
@@ -159,7 +159,7 @@ ui <- page_sidebar(
   ),
   
   # ---------- Main Panel ---------- #
-  h4("How much could your HDB flat be sold for on the open resale market today?"),
+  h4("How much can your HDB flat be sold for on the Open Resale Market today?"),
   
   # Display for predicted resale price and 95% CI
   layout_columns(
