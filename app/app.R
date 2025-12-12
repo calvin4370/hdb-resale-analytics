@@ -472,7 +472,7 @@ server <- function(input, output, session) {
         geom_line(data = mean_data, 
                   aes(x = resale_year, y = mean_price), 
                   color = "red", 
-                  size = 1.2) +
+                  linewidth = 1.2) +
         
         # Labels
         labs(
