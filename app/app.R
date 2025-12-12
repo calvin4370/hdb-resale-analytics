@@ -6,8 +6,8 @@
 library(shiny)
 library(bslib) # for modern shiny apps (Bootstrap 5)
 library(bsicons) # for Bootstrap icons
-library(here)
 library(tidyverse)
+library(xgboost) # needed to run the trained xgboost model
 
 # ==============================================================================
 # Setup
