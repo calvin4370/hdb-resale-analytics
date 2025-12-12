@@ -9,6 +9,8 @@ library(bsicons) # for Bootstrap icons
 library(tidyverse)
 library(xgboost) # needed to run the trained xgboost model
 library(caret) # needed to run caret::predict on the caret trained xgboost model
+library(DT) # for datatable and formatCurrency
+
 
 # ==============================================================================
 # Setup
