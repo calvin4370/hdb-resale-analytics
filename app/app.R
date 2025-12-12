@@ -8,6 +8,7 @@ library(bslib) # for modern shiny apps (Bootstrap 5)
 library(bsicons) # for Bootstrap icons
 library(tidyverse)
 library(xgboost) # needed to run the trained xgboost model
+library(caret) # needed to run caret::predict on the caret trained xgboost model
 
 # ==============================================================================
 # Setup
