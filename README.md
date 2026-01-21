@@ -10,6 +10,13 @@ The final **XGBoost** model achieves an **$R^2$ of 0.976** and an **RMSE of $28.
 
 ### **[Try the Shiny App](https://chan-jun-jie.shinyapps.io/hdb-resale-price-prediction/)**
 
+<figure>
+  <img src="output/screenshots/shiny_app_dashboard.png" alt="Shiny App Dashboard">
+  <br>
+  <figcaption style="text-align: center;">
+    <i>Shiny App Dashboard</i>
+  </figcaption>
+</figure>
 
 ## Problem Statement
 Estimating the resale value of an HDB flat in Singapore is difficult due to non-linear relationships between resale price and factors like storey level, distances from MRT / CBD, as well as interaction effects between factors. 
