@@ -1,15 +1,24 @@
 # ==============================================================================
 # Shiny App for HDB Resale Price Prediction
-# - Uses the trained XGBoost model
+# - Serves whichever model 09_compare_models.R selected on cross-validated
+#   error, bundled by 10_build_app_bundle.R
 # ==============================================================================
 
 library(shiny)
 library(bslib) # for modern shiny apps (Bootstrap 5)
 library(bsicons) # for Bootstrap icons
 library(tidyverse)
-library(xgboost) # needed to run the trained xgboost model
-library(caret) # needed to run caret::predict on the caret trained xgboost model
+library(caret) # predict() dispatches through the caret train object
 library(DT) # for datatable and formatCurrency
+
+# Every engine a deployed model might come from. The winner is not known until
+# 09 runs, and predict() needs its package loaded. Declared statically rather
+# than looked up from the metadata because rsconnect decides what to install on
+# shinyapps.io by scanning library() calls — a dynamic load would deploy an app
+# that cannot serve its own model.
+library(xgboost)
+library(ranger)
+library(glmnet)
 
 
 # ==============================================================================
