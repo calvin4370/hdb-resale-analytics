@@ -16,6 +16,7 @@ library(xgboost)
 library(doParallel)
 
 source("R/prepare_model_data.R")
+source("R/tuning.R")
 
 model_df <- load_model_data()
 split <- split_by_year(model_df)
@@ -26,6 +27,7 @@ train_control <- make_train_control(
 )
 
 dir.create("output/models", recursive = TRUE, showWarnings = FALSE)
+dir.create("output/metrics", recursive = TRUE, showWarnings = FALSE)
 
 # Leave one core for the OS.
 num_cores <- detectCores() - 1
@@ -91,6 +93,16 @@ plot(varImp(model_xgboost), top = 20)
 
 stopCluster(cl)
 registerDoSEQ()
+
+# nrounds selected at 1000 or eta at 0.01 would mean boosting was still
+# improving when the grid ran out.
+report_tune_grids(
+  list(
+    "Random Forest" = model_random_forest,
+    "XGBoost" = model_xgboost
+  ),
+  "output/metrics/tuning_advanced.csv"
+)
 
 saveRDS(model_random_forest, "output/models/model_random_forest.rds")
 saveRDS(model_xgboost, "output/models/model_xgboost.rds")

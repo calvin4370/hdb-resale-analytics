@@ -15,12 +15,14 @@ library(caret)
 library(glmnet)
 
 source("R/prepare_model_data.R")
+source("R/tuning.R")
 
 model_df <- load_model_data()
 split <- split_by_year(model_df)
 train_control <- make_train_control(split$train)
 
 dir.create("output/models", recursive = TRUE, showWarnings = FALSE)
+dir.create("output/metrics", recursive = TRUE, showWarnings = FALSE)
 
 
 # Model 1: Ridge (L2) ----------------------------------------------------------
@@ -99,6 +101,18 @@ elastic_matrix <- as.matrix(
   coef(model_elastic_net$finalModel, model_elastic_net$bestTune$lambda)
 )
 print(elastic_matrix[elastic_matrix != 0, ])
+
+
+# Confirm the selected lambda and alpha were bracketed by their grids rather
+# than found at an edge.
+report_tune_grids(
+  list(
+    "Ridge" = model_ridge,
+    "Lasso" = model_lasso,
+    "Elastic Net" = model_elastic_net
+  ),
+  "output/metrics/tuning_regularised.csv"
+)
 
 
 saveRDS(model_ridge, "output/models/glmnet_ridge.rds")
