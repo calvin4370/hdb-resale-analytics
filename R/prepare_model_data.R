@@ -14,12 +14,12 @@ MODEL_DATA_PATH <- "data/processed/modelling_resale_prices.csv"
 # Resale prices trend strongly across 2017-2025, so the holdout is defined by
 # transaction year rather than at random. A random split would put the same
 # months in both train and test and overstate out-of-sample accuracy.
-TRAIN_YEARS <- 2017:2023
-TEST_YEARS <- 2024:2025
+TRAIN_YEARS <- 2017:2024
+TEST_YEARS <- 2025:2026
 
 # Each cross-validation fold validates on one year and trains on every year
 # before it, mirroring the forward-looking task the model is actually used for.
-CV_VALIDATION_YEARS <- 2020:2023
+CV_VALIDATION_YEARS <- 2020:2024
 
 
 # Load the modelling dataset in the structure caret expects: log-transformed

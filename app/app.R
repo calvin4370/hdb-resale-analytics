@@ -27,6 +27,12 @@ df <- readRDS("data/transactions.rds")
 address_lookup <- readRDS("data/address_lookup.rds")
 model_metadata <- readRDS("data/model_metadata.rds")
 
+# The year the app prices at. Taken from the bundle rather than hardcoded, so
+# rebuilding on fresher data moves it without a code edit. Note this is the last
+# year in the data, not the last year the model was trained on — pricing at
+# today's date means extrapolating past the training window on purpose.
+CURRENT_YEAR <- as.integer(format(model_metadata$data_through, "%Y"))
+
 # Get unique values for dropdown menus
 flat_type_choices <- levels(df$flat_type)
 flat_model_choices <- levels(df$flat_model)

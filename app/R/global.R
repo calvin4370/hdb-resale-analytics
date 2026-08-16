@@ -2,7 +2,6 @@
 # Shared constants and helpers for the Shiny app
 # ==============================================================================
 
-CURRENT_YEAR <- 2025 # would need to update model and this variable every year
 MAX_LEASE_YEARS <- 99
 
 # Earliest lease start worth accepting. Anything older is a typo rather than a
