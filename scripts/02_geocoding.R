@@ -2,76 +2,93 @@
 # SCRIPT:  02_geocoding.R
 # AUTHOR:  Chan Jun Jie
 # DATE:    2025-12-02
-# PURPOSE: Query OneMap API to retrieve GPS coordinates (lat/long) for all unique addresses
-# INPUTS:  data/processed/cleaned_resale_prices.csv
+# PURPOSE: Retrieve GPS coordinates for every transaction address from OneMap.
+#          Resumable: the output file doubles as the cache, so a re-run only
+#          queries addresses that are not already resolved.
+# INPUTS:  1. data/processed/cleaned_resale_prices.csv
+#          2. data/external/hdb_coordinates.csv  (optional, used as cache)
 # OUTPUTS: data/external/hdb_coordinates.csv
 # ==============================================================================
 
 library(tidyverse)
-library(httr) # for sending HTTP requests
-library(jsonlite) # reads JSON to output R dataframes
 
-# Read cleaned data from 01_data_cleaning.R
-df <- read_csv("data/processed/cleaned_resale_prices.csv")
+source("R/geocoding.R")
 
-# Create a list of unique addresses using `block` + `street_name`
-unique_addresses <- df %>%
-  distinct(address)
+COORDS_PATH <- "data/external/hdb_coordinates.csv"
 
-message("Number of unique addresses to find: ", nrow(unique_addresses))
+# Partial results are flushed this often, so an interrupted run keeps its work.
+CHECKPOINT_EVERY <- 250
 
 
-# OneMap API call function -----------------------------------------------------
-get_onemap_coords <- function(address) {
-  # Calls OneMap API with address and returns a tibble of address, lat, long
-  # api endpoint and query as defined in OneMap API
-  api_endpoint <- "https://www.onemap.gov.sg/api/common/elastic/search"
-  query <- list(
-    searchVal = address, 
-    returnGeom = "Y", 
-    getAddrDetails = "Y", 
-    pageNum = 1
-  )
-  
-  tryCatch({
-    result <- GET(api_endpoint, query = query) # OneMap API returns content in raw bytes form
-    json <- rawToChar(result$content) # convert raw bytes to json text
-    data <- fromJSON(json) # convert json text to R dataframe
-    
-    if (data$found > 0) {
-      return(tibble(
-        address = address,
-        lat = as.numeric(data$results$LATITUDE[1]),
-        long = as.numeric(data$results$LONGITUDE[1])
-      ))
-    } else { # If no search result found, return with NA coords
-      return(tibble(address = address, lat = NA, long = NA))
-    }
-  }, error = function(e) { # If no search result found, return with NA coords
-    return(tibble(address = address, lat = NA, long = NA))
-  })
+df <- read_csv(
+  "data/processed/cleaned_resale_prices.csv",
+  show_col_types = FALSE
+)
+
+unique_addresses <- distinct(df, address)
+
+# Only successful geocodes are ever written, so presence in the file means
+# resolved. Failures are simply absent and get retried on the next run.
+cached <- if (file.exists(COORDS_PATH)) {
+  read_csv(COORDS_PATH, show_col_types = FALSE)
+} else {
+  tibble(address = character(), lat = double(), long = double())
 }
 
+pending <- unique_addresses %>%
+  anti_join(cached, by = "address") %>%
+  pull(address)
 
-# Call the API for every address -----------------------------------------------
-results <- list() # to store tibbles of (address, lat, long)
-message("Geocoding of addresses in progress...")
+message(glue::glue(
+  "{nrow(unique_addresses)} unique addresses, {nrow(cached)} already cached, ",
+  "{length(pending)} to geocode"
+))
 
-# Show a progress bar in the console while this script is running
-total_addresses <- nrow(unique_addresses)
-progress_bar <- txtProgressBar(min = 0, max = total_addresses, style = 3)
+if (length(pending) == 0) {
+  message("Nothing to do.")
+} else {
+  results <- vector("list", length(pending))
+  progress_bar <- txtProgressBar(min = 0, max = length(pending), style = 3)
 
-for (i in 1 : total_addresses) {
-  curr_address <- unique_addresses$address[i]
-  results[[i]] <- get_onemap_coords(curr_address)
-  setTxtProgressBar(progress_bar, i)
-  Sys.sleep(0.1) # do not spam the OneMap API too quickly
+  # Written out mid-run as well as at the end. Anything already collected
+  # survives an interruption and is picked up as cache next time.
+  flush <- function(upto) {
+    resolved <- bind_rows(results[seq_len(upto)]) %>%
+      filter(!is.na(lat)) %>%
+      select(address, lat, long)
+
+    # Appended, not re-sorted: a refresh should diff as the handful of new
+    # addresses rather than as a rewrite of the whole file.
+    write_csv(bind_rows(cached, resolved), COORDS_PATH)
+  }
+
+  for (i in seq_along(pending)) {
+    results[[i]] <- geocode_address(pending[i])
+    setTxtProgressBar(progress_bar, i)
+
+    if (i %% CHECKPOINT_EVERY == 0) flush(i)
+    Sys.sleep(0.1) # do not spam the OneMap API too quickly
+  }
+
+  close(progress_bar)
+  flush(length(pending))
+
+  # Reported per address and reason rather than left as an anonymous NA, so a
+  # re-run can be judged instead of guessed at.
+  attempted <- bind_rows(results)
+  failed <- filter(attempted, is.na(lat))
+
+  if (nrow(failed) > 0) {
+    message(glue::glue("{nrow(failed)} addresses failed:"))
+    print(count(failed, reason, sort = TRUE))
+    print(head(select(failed, address, reason), 20))
+  }
+
+  message(glue::glue(
+    "Geocoded {nrow(attempted) - nrow(failed)} of {length(pending)} ",
+    "pending addresses"
+  ))
 }
 
-
-# Save results to a new csv ----------------------------------------------------
-final_coords <- bind_rows(results) # convert list of tibbles of (address, lat, long) into one dataframe
-glimpse(final_coords)
-output_filepath <- "data/external/hdb_coordinates.csv"
-write_csv(final_coords, output_filepath)
-message("Geospatial data saved to ", output_filepath)
+final <- read_csv(COORDS_PATH, show_col_types = FALSE)
+message(glue::glue("{nrow(final)} coordinates saved to {COORDS_PATH}"))

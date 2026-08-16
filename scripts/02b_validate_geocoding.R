@@ -12,10 +12,9 @@
 
 library(tidyverse)
 
-# Bounding box for Singapore. A geocode outside it means OneMap matched
-# something other than the intended address.
-SG_LAT_RANGE <- c(1.15, 1.48)
-SG_LONG_RANGE <- c(103.6, 104.1)
+# Bounding box and in_singapore(). 02 applies the same check on acceptance;
+# this re-checks the saved file, so the two cannot drift apart.
+source("R/geocoding.R")
 
 
 coords <- read_csv(
@@ -34,11 +33,7 @@ transaction_addresses <- distinct(cleaned_data, address)
 
 missing_coords <- filter(coords, is.na(lat) | is.na(long))
 ungeocoded <- anti_join(transaction_addresses, coords, by = "address")
-outside_singapore <- coords %>%
-  filter(
-    !between(lat, SG_LAT_RANGE[1], SG_LAT_RANGE[2]) |
-      !between(long, SG_LONG_RANGE[1], SG_LONG_RANGE[2])
-  )
+outside_singapore <- filter(coords, !in_singapore(lat, long))
 
 if (nrow(missing_coords) > 0) print(head(missing_coords, 20))
 if (nrow(ungeocoded) > 0) print(head(ungeocoded, 20))
