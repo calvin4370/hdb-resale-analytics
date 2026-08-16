@@ -2,6 +2,9 @@
 # Model artifacts
 output/models/*.rds
 
+# Default graphics device file created when Rscript prints a plot
+Rplots.pdf
+
 # Auto-added by Git for R: -----------------------------------------------------
 # History files
 .Rhistory
