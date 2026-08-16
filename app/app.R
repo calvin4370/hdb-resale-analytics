@@ -61,6 +61,15 @@ address_lookup <- df %>%
     .groups = "drop" # turn off the group_by
   )
 
+# Input bounds taken from the training data, so the app cannot ask the model
+# for a prediction outside the range it was fitted on.
+floor_area_bounds <- range(df$floor_area_sqm)
+lease_start_bounds <- c(
+  max(min(df$lease_commence_date), MIN_LEASE_START_YEAR),
+  CURRENT_YEAR
+)
+max_storey <- max(df$storey_mid)
+
 # Load Model from app/models
 model_xgboost <- readRDS("models/model_xgboost.rds")
 
@@ -108,25 +117,31 @@ ui <- page_sidebar(
     
     # Floor Area input
     numericInput(
-      "num_floor_area", 
-      label = "Floor Area (sqm)", 
-      value = NULL
+      "num_floor_area",
+      label = "Floor Area (sqm)",
+      value = NULL,
+      min = floor_area_bounds[1],
+      max = floor_area_bounds[2],
+      step = 1
     ),
-    
+
     # Storey Level input
     sliderInput(
-      "sld_storey_level", 
-      label = "Storey Level", 
-      min = 1, 
-      max = 50, 
+      "sld_storey_level",
+      label = "Storey Level",
+      min = 1,
+      max = max_storey,
       value = 1
     ),
-    
+
     # Lease Start Year
     numericInput(
-      "num_lease_start_year", 
-      label = "Lease Start Year", 
-      value = NULL
+      "num_lease_start_year",
+      label = "Lease Start Year",
+      value = NULL,
+      min = lease_start_bounds[1],
+      max = lease_start_bounds[2],
+      step = 1
     ),
     
     hr(),
@@ -280,13 +295,17 @@ server <- function(input, output, session) {
     data <- past_sales_with_same_address()
     
     # Set input$num_lease_start_year to most common Lease Start Year from data
-    most_common_lease_start_year <- as.numeric(names(sort(table(data$lease_commence_date), decreasing=TRUE)[1]))
-    updateNumericInput(session, "num_lease_start_year", value = most_common_lease_start_year)
-    
+    updateNumericInput(
+      session, "num_lease_start_year",
+      value = most_common(data$lease_commence_date)
+    )
+
     # Restrict input$sel_flat_type to seen choices in past data and set to most common available
-    available_flat_types <- sort(unique(data$flat_type))
-    most_common_flat_type <- names(sort(table(data$flat_type), decreasing=TRUE)[1])
-    updateSelectInput(session, "sel_flat_type", choices = available_flat_types, selected = most_common_flat_type)
+    updateSelectInput(
+      session, "sel_flat_type",
+      choices = sort(unique(data$flat_type)),
+      selected = most_common(data$flat_type)
+    )
   })
   
   # Whenever EITHER input$sel_address OR input$sel_flat_type is updated, 
@@ -296,15 +315,19 @@ server <- function(input, output, session) {
     data <- past_sales_with_same_address() %>% 
       filter(flat_type == input$sel_flat_type)
     
-    # Set input$num_floor_area to most common available for the given flat_type AND flat_model
-    # and restrict input$sel_flat_model to seen choices in past data and set to most common available
-    if(nrow(data) > 0) {
-      most_common_floor_area <- sort(unique(data$floor_area_sqm, na.rm = TRUE))[1]
-      updateNumericInput(session, "num_floor_area", value = most_common_floor_area)
-      
-      available_flat_models <- sort(unique(data$flat_model))
-      most_common_flat_model <- names(sort(table(data$flat_model), decreasing=TRUE)[1])
-      updateSelectInput(session, "sel_flat_model", choices = available_flat_models, selected = most_common_flat_model)
+    # Pre-fill floor area and flat model with the most common values seen at
+    # this address for the chosen flat type.
+    if (nrow(data) > 0) {
+      updateNumericInput(
+        session, "num_floor_area",
+        value = most_common(data$floor_area_sqm)
+      )
+
+      updateSelectInput(
+        session, "sel_flat_model",
+        choices = sort(unique(data$flat_model)),
+        selected = most_common(data$flat_model)
+      )
     }
   })
   
@@ -333,6 +356,30 @@ server <- function(input, output, session) {
     # on address through our lookup table
     curr_loc_row <- current_location_row()
     
+    # Browser-side min/max on numericInput is advisory only, so the same bounds
+    # are enforced here. Outside them the model would be extrapolating beyond
+    # the data it was fitted on.
+    validate(
+      need(
+        is.finite(input$num_floor_area) &&
+          between(input$num_floor_area, floor_area_bounds[1],
+                  floor_area_bounds[2]),
+        glue::glue(
+          "Enter a floor area between {floor_area_bounds[1]} and ",
+          "{floor_area_bounds[2]} sqm."
+        )
+      ),
+      need(
+        is.finite(input$num_lease_start_year) &&
+          between(input$num_lease_start_year, lease_start_bounds[1],
+                  lease_start_bounds[2]),
+        glue::glue(
+          "Enter a lease start year between {lease_start_bounds[1]} and ",
+          "{lease_start_bounds[2]}."
+        )
+      )
+    )
+
     # Calculate other model input data for user input fields
     remaining_lease_years <- MAX_LEASE_YEARS - (CURRENT_YEAR - input$num_lease_start_year)
     # Snap the chosen storey to the midpoint of its 3-storey band, matching
@@ -357,7 +404,17 @@ server <- function(input, output, session) {
     )
     
     # Return model's prediction of REAL resale price
-    exp(predict(model_xgboost, input_data))
+    predicted_price <- tryCatch(
+      exp(predict(model_xgboost, input_data)),
+      error = function(e) NULL
+    )
+
+    validate(need(
+      length(predicted_price) == 1 && is.finite(predicted_price),
+      "No prediction available for this combination of flat details."
+    ))
+
+    predicted_price
   })
   
   
