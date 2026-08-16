@@ -144,7 +144,11 @@ best_model_performance_plot <- ggplot(
   test_set,
   aes(x = actual_price, y = predicted_price)
 ) +
-  geom_point(alpha = 0.1, color = "darkblue") +
+  geom_bin2d(bins = 50) +
+  scale_fill_gradient(
+    low = "#e6ecf5", high = "navy",
+    transform = "log10", name = "Transactions"
+  ) +
   geom_abline(
     intercept = 0,
     slope = 1,

@@ -321,10 +321,18 @@ ggsave("output/figures/bar_town.png", plot = bar_town, width = 12, height = 6)
 
 # Floor area vs price on both scales. The raw-price version shows the spread of
 # price widening as area grows; the log version stabilises it.
+#
+# Binned rather than plotted point by point: 219,855 semi-transparent points
+# saturate into a solid block that hides where the density actually sits. The
+# fill is log-scaled because counts per bin span several orders of magnitude.
 scatter_floor_area <- ggplot(
   modelling, aes(x = floor_area_sqm, y = resale_price / 1000)
 ) +
-  geom_point(alpha = 0.1, color = "seagreen") +
+  geom_bin2d(bins = 60) +
+  scale_fill_gradient(
+    low = "#e8f3ed", high = "seagreen",
+    transform = "log10", name = "Transactions"
+  ) +
   geom_smooth(method = "lm", color = "red", se = FALSE) +
   scale_x_continuous(breaks = seq(0, 200, by = 25), limits = c(0, 200)) +
   scale_y_continuous(breaks = seq(0, 1750, by = 250), limits = c(0, 1750)) +
@@ -343,7 +351,11 @@ ggsave(
 scatter_log_price_vs_floor_area <- ggplot(
   modelling, aes(x = floor_area_sqm, y = log(resale_price))
 ) +
-  geom_point(alpha = 0.1, color = "seagreen") +
+  geom_bin2d(bins = 60) +
+  scale_fill_gradient(
+    low = "#e8f3ed", high = "seagreen",
+    transform = "log10", name = "Transactions"
+  ) +
   geom_smooth(method = "lm", color = "red", se = FALSE) +
   scale_x_continuous(breaks = seq(0, 200, by = 25), limits = c(0, 200)) +
   scale_y_continuous(breaks = seq(11, 15, by = 1), limits = c(11, 15)) +
@@ -364,7 +376,11 @@ ggsave(
 scatter_remaining_lease <- ggplot(
   modelling, aes(x = remaining_lease_numeric, y = resale_price / 1000)
 ) +
-  geom_point(alpha = 0.05, color = "orange") +
+  geom_bin2d(bins = 60) +
+  scale_fill_gradient(
+    low = "#fff4e0", high = "darkorange",
+    transform = "log10", name = "Transactions"
+  ) +
   geom_smooth(method = "lm", color = "black", se = FALSE) +
   scale_x_continuous(breaks = seq(40, 100, by = 20), limits = c(40, 100)) +
   scale_y_continuous(breaks = seq(0, 1750, by = 250), limits = c(0, 1750)) +
@@ -383,7 +399,11 @@ ggsave(
 scatter_log_price_vs_remaining_lease <- ggplot(
   modelling, aes(x = remaining_lease_numeric, y = log(resale_price))
 ) +
-  geom_point(alpha = 0.05, color = "orange") +
+  geom_bin2d(bins = 60) +
+  scale_fill_gradient(
+    low = "#fff4e0", high = "darkorange",
+    transform = "log10", name = "Transactions"
+  ) +
   geom_smooth(method = "lm", color = "black", se = FALSE) +
   scale_x_continuous(breaks = seq(40, 100, by = 20), limits = c(40, 100)) +
   scale_y_continuous(breaks = seq(11, 15, by = 1), limits = c(11, 15)) +
@@ -404,7 +424,11 @@ ggsave(
 scatter_distance_to_cbd <- ggplot(
   modelling, aes(x = distance_to_cbd, y = resale_price / 1000)
 ) +
-  geom_point(alpha = 0.05, color = "firebrick") +
+  geom_bin2d(bins = 60) +
+  scale_fill_gradient(
+    low = "#f9e9e9", high = "firebrick",
+    transform = "log10", name = "Transactions"
+  ) +
   geom_smooth(method = "lm", color = "black", se = FALSE) +
   scale_x_continuous(breaks = seq(0, 20, by = 5), limits = c(0, 20)) +
   scale_y_continuous(breaks = seq(0, 1750, by = 250), limits = c(0, 1750)) +
@@ -423,7 +447,11 @@ ggsave(
 scatter_distance_to_nearest_mrt <- ggplot(
   modelling, aes(x = distance_to_nearest_mrt, y = resale_price / 1000)
 ) +
-  geom_point(alpha = 0.05, color = "dodgerblue") +
+  geom_bin2d(bins = 60) +
+  scale_fill_gradient(
+    low = "#e6f2ff", high = "dodgerblue4",
+    transform = "log10", name = "Transactions"
+  ) +
   geom_smooth(method = "lm", color = "red", se = FALSE) +
   scale_x_continuous(breaks = seq(0, 2.5, by = 0.5), limits = c(0, 2.5)) +
   scale_y_continuous(breaks = seq(0, 1750, by = 250), limits = c(0, 1750)) +
@@ -515,8 +543,12 @@ ggsave("output/figures/box_town.png", plot = box_town, width = 12, height = 6)
 scatter_time <- ggplot(
   modelling, aes(x = resale_date, y = resale_price / 1000)
 ) +
-  geom_point(alpha = 0.05, color = "darkgrey") +
-  geom_smooth(color = "blue", linewidth = 1) +
+  geom_bin2d(bins = 60) +
+  scale_fill_gradient(
+    low = "#ececf5", high = "slateblue4",
+    transform = "log10", name = "Transactions"
+  ) +
+  geom_smooth(color = "red", linewidth = 1) +
   scale_y_continuous(breaks = seq(0, 1750, by = 250), limits = c(0, 1750)) +
   scale_x_date(
     date_breaks = "1 year",
