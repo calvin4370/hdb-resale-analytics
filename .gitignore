@@ -5,6 +5,14 @@ output/models/*.rds
 # Default graphics device file created when Rscript prints a plot
 Rplots.pdf
 
+# Derived data. Rebuilt by scripts 01, 03 and 04 from data/raw and
+# data/external, both of which are tracked, so a clone can regenerate these
+# without re-running the geocoding.
+data/processed/
+
+# App bundle, rebuilt from the canonical artifacts rather than hand-copied.
+app/data/
+
 # Auto-added by Git for R: -----------------------------------------------------
 # History files
 .Rhistory
