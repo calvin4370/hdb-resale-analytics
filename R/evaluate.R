@@ -11,8 +11,17 @@ library(tidyverse)
 # a log-scale prediction returns the geometric mean, which sits below the
 # arithmetic mean. The correction factor is the mean of the exponentiated
 # residuals and is computed on training data only, never on the test years.
+#
+# Generic because the correction is only meaningful over rows where the model
+# is calibrated. A model carrying a time term fits every training year, so all
+# of them qualify; a model pinned to one year does not.
+#
 # Assumes residuals are homoskedastic on the log scale.
 smearing_factor <- function(model, train_data) {
+  UseMethod("smearing_factor")
+}
+
+smearing_factor.default <- function(model, train_data) {
   residuals_log <- train_data$log_resale_price - predict(model, train_data)
   mean(exp(residuals_log))
 }

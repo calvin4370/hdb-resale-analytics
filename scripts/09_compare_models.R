@@ -17,6 +17,7 @@ library(xgboost)
 
 source("R/prepare_model_data.R")
 source("R/evaluate.R")
+source("R/baseline.R")
 
 dir.create("output/metrics", recursive = TRUE, showWarnings = FALSE)
 
@@ -24,6 +25,10 @@ model_df <- load_model_data()
 split <- split_by_year(model_df)
 
 model_map <- list(
+  # Reference model, fit here rather than loaded: it is a grouped median and
+  # needs no training run.
+  "Median $/sqm" = fit_median_psm(split$train),
+
   "OLS Baseline" = readRDS("output/models/lm_baseline.rds"),
   "Stepwise AIC" = readRDS("output/models/lm_stepwise.rds"),
   "Ridge" = readRDS("output/models/glmnet_ridge.rds"),
@@ -40,8 +45,19 @@ model_map <- list(
 # out-of-sample performance rather than a value that was optimised against.
 # CV errors are on the log scale, being the scale the models were fit on.
 
+cv_folds <- make_time_folds(split$train)
+
 cv_results <- map_dfr(names(model_map), function(model_name) {
-  perf <- getTrainPerf(model_map[[model_name]])
+  model <- model_map[[model_name]]
+
+  # The reference model is cross-validated over the same folds by hand; the
+  # caret models carry their resampled performance already.
+  perf <- if (inherits(model, "median_psm")) {
+    cv_median_psm(split$train, cv_folds)
+  } else {
+    getTrainPerf(model)
+  }
+
   tibble(
     Model = model_name,
     CV_RMSE_log = round(perf$TrainRMSE, 5),
