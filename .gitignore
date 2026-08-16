@@ -5,6 +5,10 @@ output/models/*.rds
 # Stage timings from run_all.R. Machine-specific, so not worth tracking.
 output/pipeline_timings.csv
 
+# Dated extracts from 00_download_data.R. Only the snapshot is tracked; these
+# exist to be compared against it before a deliberate replacement.
+data/raw/raw_resale_prices_*.csv
+
 # Default graphics device file created when Rscript prints a plot
 Rplots.pdf
 
