@@ -18,24 +18,18 @@ library(xgboost)
 source("R/prepare_model_data.R")
 source("R/evaluate.R")
 source("R/baseline.R")
+source("R/models.R")
 
 dir.create("output/metrics", recursive = TRUE, showWarnings = FALSE)
 
 model_df <- load_model_data()
 split <- split_by_year(model_df)
 
-model_map <- list(
+model_map <- c(
   # Reference model, fit here rather than loaded: it is a grouped median and
   # needs no training run.
-  "Median $/sqm" = fit_median_psm(split$train),
-
-  "OLS Baseline" = readRDS("output/models/lm_baseline.rds"),
-  "Stepwise AIC" = readRDS("output/models/lm_stepwise.rds"),
-  "Ridge" = readRDS("output/models/glmnet_ridge.rds"),
-  "Lasso" = readRDS("output/models/glmnet_lasso.rds"),
-  "Elastic Net" = readRDS("output/models/glmnet_elastic.rds"),
-  "Random Forest" = readRDS("output/models/model_random_forest.rds"),
-  "XGBoost" = readRDS("output/models/model_xgboost.rds")
+  list("Median $/sqm" = fit_median_psm(split$train)),
+  load_trained_models()
 )
 
 

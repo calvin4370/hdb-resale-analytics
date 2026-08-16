@@ -19,47 +19,17 @@ library(DT) # for datatable and formatCurrency
 # Load and prepare data --------------------------------------------------------
 # Must be in the same structure (factors for categorical variables) as the
 # modelling df used to train the xgboost model
-df <- read_csv("data/processed/modelling_resale_prices.csv") %>%
-  mutate(
-    town = as.factor(town),
-    flat_type = as.factor(flat_type),
-    flat_model = as.factor(flat_model)
-  ) %>%
-  select(
-    town,
-    flat_type,
-    flat_model,
-    address,
-    storey_range,
-    storey_mid,
-    distance_to_cbd,
-    distance_to_nearest_mrt,
-    lat,
-    long,
-    lease_commence_date,
-    resale_price,
-    resale_year,
-    floor_area_sqm
-  )
+# Built by scripts/10_build_app_bundle.R from the trained artifacts. Reading
+# prepared .rds files rather than parsing the full modelling CSV keeps factor
+# levels identical to the ones the model was trained on, and cuts cold start
+# from a 47 MB parse to a few megabytes.
+df <- readRDS("data/transactions.rds")
+address_lookup <- readRDS("data/address_lookup.rds")
+model_metadata <- readRDS("data/model_metadata.rds")
 
 # Get unique values for dropdown menus
-town_choices <- levels(df$town)
 flat_type_choices <- levels(df$flat_type)
 flat_model_choices <- levels(df$flat_model)
-address_choices <- levels(df$address)
-
-
-# Lookup table of (UNIQUE address, and its town, distance_to_cbd, distance_to_nearest_mrt)
-address_lookup <- df %>%
-  group_by(address) %>%
-  summarise(
-    town = first(town),
-    distance_to_cbd = first(distance_to_cbd),
-    distance_to_nearest_mrt = first(distance_to_nearest_mrt),
-    lat = first(lat),
-    long = first(long),
-    .groups = "drop" # turn off the group_by
-  )
 
 # Input bounds taken from the training data, so the app cannot ask the model
 # for a prediction outside the range it was fitted on.
@@ -71,7 +41,7 @@ lease_start_bounds <- c(
 max_storey <- max(df$storey_mid)
 
 # Load Model from app/models
-model_xgboost <- readRDS("models/model_xgboost.rds")
+model_deployed <- readRDS("models/model_deployed.rds")
 
 
 # ==============================================================================
@@ -243,6 +213,17 @@ ui <- page_sidebar(
         target = "_blank", # open in a new tab to not disrupt the Shiny App
         "Github"
       )
+    ),
+    # Stated so a stale bundle is visible rather than silent.
+    p(
+      class = "mb-0",
+      sprintf(
+        "Model: %s, trained on %d-%d transactions. Data through %s.",
+        model_metadata$model_name,
+        model_metadata$train_years[1],
+        model_metadata$train_years[2],
+        format(model_metadata$data_through, "%b %Y")
+      )
     )
   )
   
@@ -403,9 +384,11 @@ server <- function(input, output, session) {
       resale_year = CURRENT_YEAR
     )
     
-    # Return model's prediction of REAL resale price
+    # Smearing correction from the training residuals. exp() alone returns the
+    # geometric mean, which sits below the mean price the user is asking about.
     predicted_price <- tryCatch(
-      exp(predict(model_xgboost, input_data)),
+      exp(predict(model_deployed, input_data)) *
+        model_metadata$smearing_factor,
       error = function(e) NULL
     )
 
