@@ -256,6 +256,11 @@ ggsave(
 # they are kept.
 remote_flats <- modelling %>% filter(distance_to_nearest_mrt > 3)
 
+# Axis cut for the rail-distance scatter below. The long tail squeezes the bulk
+# of the data into the left edge, so the view is trimmed and the caption counts
+# what the trim removes.
+MRT_PLOT_MAX_KM <- 2.5
+
 message(glue::glue(
   "Transactions over 3km from rail: {nrow(remote_flats)} ",
   "({n_distinct(remote_flats$address)} addresses on ",
@@ -458,15 +463,20 @@ scatter_distance_to_nearest_mrt <- ggplot(
     transform = "log10", name = "Transactions"
   ) +
   geom_smooth(method = "lm", color = "red", se = FALSE) +
-  scale_x_continuous(breaks = seq(0, 2.5, by = 0.5), limits = c(0, 2.5)) +
+  scale_x_continuous(
+    breaks = seq(0, MRT_PLOT_MAX_KM, by = 0.5), limits = c(0, MRT_PLOT_MAX_KM)
+  ) +
   scale_y_continuous(breaks = seq(0, 1750, by = 250), limits = c(0, 1750)) +
   theme_minimal() +
   labs(
     title = "Resale Price ($'000) vs. Distance to nearest MRT/LRT (km)",
     x = "Distance to MRT (km)",
     y = "Resale Price ($'000)",
+    # Counted against the axis cut rather than a separately typed threshold,
+    # which is what the caption is actually describing.
     caption = glue::glue(
-      "Note: {nrow(remote_flats)} transactions over 3km from rail ",
+      "Note: {sum(modelling$distance_to_nearest_mrt > MRT_PLOT_MAX_KM)} ",
+      "transactions over {MRT_PLOT_MAX_KM}km from rail ",
       "omitted from the view for readability."
     )
   ) +
@@ -555,10 +565,12 @@ scatter_time <- ggplot(
   ) +
   geom_smooth(color = "red", linewidth = 1) +
   scale_y_continuous(breaks = seq(0, 1750, by = 250), limits = c(0, 1750)) +
+  # Taken from the data. A hardcoded end date silently cropped the newest year
+  # off the one chart that exists to justify the temporal split.
   scale_x_date(
     date_breaks = "1 year",
     date_labels = "%Y",
-    limits = as.Date(c("2017-01-01", "2025-12-31"))
+    limits = range(modelling$resale_date)
   ) +
   theme_minimal() +
   labs(
