@@ -198,10 +198,10 @@ ggsave(
 
 
 # Storey. Very high floors are trimmed from the view only, not from the data.
-n_high_storey <- sum(modelling$storey_range_floored > 37)
+n_high_storey <- sum(modelling$storey_mid > 37)
 
-hist_storey_range_floored <- ggplot(
-  modelling, aes(x = storey_range_floored)
+hist_storey_mid <- ggplot(
+  modelling, aes(x = storey_mid)
 ) +
   geom_histogram(fill = "purple", color = "white", binwidth = 3, boundary = 1) +
   scale_x_continuous(breaks = seq(1, 37, by = 3), limits = c(1, 37)) +
@@ -209,7 +209,7 @@ hist_storey_range_floored <- ggplot(
   theme_minimal() +
   labs(
     title = "Distribution of Storey Levels",
-    x = "Storey Range (Lower Bound)",
+    x = "Storey (Band Midpoint)",
     y = "Count",
     caption = glue::glue(
       "Note: {n_high_storey} units above storey 37 omitted from the view ",
@@ -222,7 +222,7 @@ hist_storey_range_floored <- ggplot(
 
 ggsave(
   "output/figures/hist_storey.png",
-  plot = hist_storey_range_floored, width = 8, height = 6
+  plot = hist_storey_mid, width = 8, height = 6
 )
 
 
@@ -447,27 +447,25 @@ ggsave(
 )
 
 
-# storey_range_floored is discrete in steps of 3, so a boxplot per level reads
-# better than a scatter.
-box_storey_range_floored <- ggplot(
-  modelling, aes(x = storey_range_floored, y = resale_price / 1000)
+# storey_mid is discrete in steps of 3, so a boxplot per level reads better
+# than a scatter.
+box_storey_mid <- ggplot(
+  modelling, aes(x = storey_mid, y = resale_price / 1000)
 ) +
-  geom_boxplot(
-    aes(group = storey_range_floored), fill = "purple", alpha = 0.3
-  ) +
+  geom_boxplot(aes(group = storey_mid), fill = "purple", alpha = 0.3) +
   geom_smooth(method = "lm", color = "black", se = FALSE) +
   scale_y_continuous(breaks = seq(0, 1750, by = 250), limits = c(0, 1750)) +
   scale_x_continuous(breaks = seq(1, 50, by = 3)) +
   theme_minimal() +
   labs(
-    title = "Boxplot of Resale Price ($'000) vs. Storey Range (Lower Bound)",
-    x = "Storey Floor (Lower Bound)",
+    title = "Boxplot of Resale Price ($'000) vs. Storey",
+    x = "Storey (Band Midpoint)",
     y = "Resale Price ($'000)"
   )
 
 ggsave(
-  "output/figures/box_storey_range_floored.png",
-  plot = box_storey_range_floored, width = 8, height = 6
+  "output/figures/box_storey_mid.png",
+  plot = box_storey_mid, width = 8, height = 6
 )
 
 
@@ -553,7 +551,7 @@ numeric_vars <- modelling %>%
   transmute(
     log_resale_price = log(resale_price),
     floor_area_sqm,
-    storey_range_floored,
+    storey_mid,
     remaining_lease_numeric,
     distance_to_cbd,
     distance_to_nearest_mrt

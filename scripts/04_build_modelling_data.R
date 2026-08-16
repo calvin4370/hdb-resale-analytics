@@ -59,8 +59,8 @@ stopifnot(
   "unexpected missing values in model predictors" =
     !anyNA(modelling_data[, c(
       "town", "flat_type", "flat_model", "floor_area_sqm",
-      "storey_range_floored", "remaining_lease_numeric",
-      "distance_to_cbd", "distance_to_nearest_mrt", "resale_year"
+      "storey_mid", "remaining_lease_numeric", "distance_to_cbd",
+      "distance_to_nearest_mrt", "resale_year", "lat", "long"
     )])
 )
 

@@ -37,7 +37,7 @@ load_model_data <- function(path = MODEL_DATA_PATH) {
       town,
       flat_type,
       floor_area_sqm,
-      storey_range_floored,
+      storey_mid,
       flat_model,
       remaining_lease_numeric,
       distance_to_cbd,

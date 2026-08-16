@@ -33,17 +33,26 @@ cleaned_data <- raw_data %>%
     resale_date = ym(month),
     resale_year = year(resale_date),
     resale_month = month(resale_date)
-  ) %>% 
-  
-  # Separate storey_range into two parts: the range floor and ceil (e.g. "01 TO 03" -> "01" and "03")
-  separate(storey_range, into = c("storey_range_floored", "storey_range_ceil"), sep = " TO ") %>%
+  ) %>%
+
+  # Storey is banded (e.g. "01 TO 03"). Model on the band midpoint and keep the
+  # original string for display.
+  separate_wider_delim(
+    storey_range,
+    delim = " TO ",
+    names = c("storey_lower", "storey_upper"),
+    cols_remove = FALSE
+  ) %>%
   mutate(
-    storey_range_floored = as.numeric(storey_range_floored),
-    storey_range_ceil = as.numeric(storey_range_ceil),
-  ) %>% 
-  
-  # Remove unnecessary intermediate columns
-  select(-remaining_lease_years_part, -remaining_lease_months_part)
+    storey_mid = (as.numeric(storey_lower) + as.numeric(storey_upper)) / 2
+  ) %>%
+
+  select(
+    -remaining_lease_years_part,
+    -remaining_lease_months_part,
+    -storey_lower,
+    -storey_upper
+  )
 
 
 # Check cleaned_data structure

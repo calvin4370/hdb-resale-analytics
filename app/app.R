@@ -23,8 +23,7 @@ df <- read_csv("data/processed/modelling_resale_prices.csv") %>%
   mutate(
     town = as.factor(town),
     flat_type = as.factor(flat_type),
-    flat_model = as.factor(flat_model),
-    storey_range = paste0(sprintf("%02d", storey_range_floored), " TO ", sprintf("%02d", storey_range_floored + 2))
+    flat_model = as.factor(flat_model)
   ) %>%
   select(
     town,
@@ -32,7 +31,7 @@ df <- read_csv("data/processed/modelling_resale_prices.csv") %>%
     flat_model,
     address,
     storey_range,
-    storey_range_floored,
+    storey_mid,
     distance_to_cbd,
     distance_to_nearest_mrt,
     lat,
@@ -336,7 +335,10 @@ server <- function(input, output, session) {
     
     # Calculate other model input data for user input fields
     remaining_lease_years <- MAX_LEASE_YEARS - (CURRENT_YEAR - input$num_lease_start_year)
-    storey_range_lower_bound <- (floor((as.numeric(input$sld_storey_level) - 1) / 3) * 3) + 1
+    # Snap the chosen storey to the midpoint of its 3-storey band, matching
+    # how storey is recorded in the transaction data.
+    storey_band_mid <-
+      (floor((as.numeric(input$sld_storey_level) - 1) / 3) * 3) + 2
     
     # Create a data.frame (1 ROW) of input hdb data
     # NOTE: MUST be in same structure as the df used to train the model
@@ -345,7 +347,7 @@ server <- function(input, output, session) {
       flat_type = factor(input$sel_flat_type, levels = levels(df$flat_type)),
       flat_model = factor(input$sel_flat_model, levels = levels(df$flat_model)),
       floor_area_sqm = as.numeric(input$num_floor_area),
-      storey_range_floored = storey_range_lower_bound,
+      storey_mid = storey_band_mid,
       remaining_lease_numeric = as.numeric(remaining_lease_years),
       distance_to_cbd = curr_loc_row$distance_to_cbd,
       distance_to_nearest_mrt = curr_loc_row$distance_to_nearest_mrt,
