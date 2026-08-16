@@ -58,6 +58,57 @@ score_predictions <- function(actual, predicted) {
 }
 
 
+# Empirical prediction band, taken from the cross-validation folds rather than
+# from training residuals or the test years. Training residuals understate the
+# spread a new flat faces, and the test years may only be scored once.
+#
+# Returns multipliers applied to the point estimate. The point estimate already
+# carries the smearing correction, so the ratios are divided by it rather than
+# counting it twice.
+#
+# Every fold validates one year beyond its own training window, so this is a
+# one-year-ahead band. The app predicts further ahead than that, which makes
+# these bounds optimistic — see the note in the app disclaimer.
+#
+# Requires trainControl(savePredictions = "final"). UNVERIFIED: no model on disk
+# was fitted with it, so this cannot run until the retrain.
+cv_error_quantiles <- function(model, train_data, smear,
+                               probs = c(0.1, 0.9), min_rows = 500) {
+  if (is.null(model$pred)) {
+    stop(
+      "model carries no saved CV predictions; refit with savePredictions",
+      call. = FALSE
+    )
+  }
+
+  ratios <- tibble(
+    flat_type = train_data$flat_type[model$pred$rowIndex],
+    ratio = exp(model$pred$obs - model$pred$pred) / smear
+  )
+
+  # Thin segments get the global band rather than a quantile estimated from a
+  # handful of rows.
+  by_flat_type <- ratios %>%
+    group_by(flat_type) %>%
+    filter(n() >= min_rows) %>%
+    summarise(
+      lower = quantile(ratio, probs[1], names = FALSE),
+      upper = quantile(ratio, probs[2], names = FALSE),
+      n = n(),
+      .groups = "drop"
+    )
+
+  list(
+    probs = probs,
+    global = c(
+      lower = quantile(ratios$ratio, probs[1], names = FALSE),
+      upper = quantile(ratios$ratio, probs[2], names = FALSE)
+    ),
+    by_flat_type = by_flat_type
+  )
+}
+
+
 # Scores within each level of a grouping column. Expects `actual_price` and
 # `predicted_price` columns.
 score_by_group <- function(scored_data, group_var) {

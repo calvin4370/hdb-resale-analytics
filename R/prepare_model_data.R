@@ -102,10 +102,15 @@ make_train_control <- function(train_df, ...) {
     "({lengths(folds$indexOut)} rows)"
   ) %>% paste(collapse = "\n"))
 
+  # savePredictions keeps the fold predictions caret already computes. They are
+  # the only genuinely out-of-sample residuals available without touching the
+  # test years, and cv_error_quantiles() builds the app's prediction band from
+  # them.
   trainControl(
     method = "cv",
     index = folds$index,
     indexOut = folds$indexOut,
+    savePredictions = "final",
     ...
   )
 }

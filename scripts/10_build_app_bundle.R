@@ -57,6 +57,19 @@ split <- split_by_year(model_df)
 # is derived from training residuals, and the app never sees the training set.
 smear <- smearing_factor(deployed_model, split$train)
 
+# Band multipliers for the app, from the cross-validation folds.
+error_quantiles <- cv_error_quantiles(deployed_model, split$train, smear)
+
+message(glue::glue(
+  "Prediction band: global {round(error_quantiles$global[['lower']], 3)}x to ",
+  "{round(error_quantiles$global[['upper']], 3)}x, with per-flat-type bands ",
+  "for {nrow(error_quantiles$by_flat_type)} types"
+))
+
+# Dropped after the quantiles are computed. The saved predictions are a large
+# share of the model object and the app has no use for them.
+deployed_model$pred <- NULL
+
 
 raw_data <- read_csv(
   "data/processed/modelling_resale_prices.csv",
@@ -100,6 +113,7 @@ address_lookup <- raw_data %>%
 model_metadata <- list(
   model_name = deployed_name,
   smearing_factor = smear,
+  error_quantiles = error_quantiles,
   train_years = range(split$train$resale_year),
   training_rows = nrow(split$train),
   predictors = setdiff(names(model_df), "log_resale_price"),

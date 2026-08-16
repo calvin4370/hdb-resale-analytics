@@ -163,10 +163,15 @@ ui <- page_sidebar(
       showcase = bs_icon("graph-up-arrow"),
       theme = "primary",
       full_screen = FALSE
+    ),
+
+    value_box(
+      title = textOutput("txt_interval_title"),
+      value = textOutput("txt_predicted_interval"),
+      showcase = bs_icon("arrows-expand-vertical"),
+      theme = "secondary",
+      full_screen = FALSE
     )
-    
-    # 95% Confidence Interval
-    # TODO
   ),
   
   # Big card with navigation tabs
@@ -427,6 +432,28 @@ server <- function(input, output, session) {
     
     price <- predicted_resale_price()
     paste0("$", format(round(price, -3), big.mark = ",")) # round to nearest $1,000
+  })
+
+  # Empirical band from the cross-validation residuals of the deployed model,
+  # widened or narrowed per flat type. Multiplicative, because the model is fit
+  # on log price and its error scales with the price level.
+  output$txt_interval_title <- renderText({
+    probs <- model_metadata$error_quantiles$probs
+    paste0(round(100 * (probs[2] - probs[1])), "% Range")
+  })
+
+  output$txt_predicted_interval <- renderText({
+    req(predicted_resale_price(), input$sel_flat_type)
+
+    band <- error_band_for(
+      model_metadata$error_quantiles, input$sel_flat_type
+    )
+    bounds <- predicted_resale_price() * c(band[["lower"]], band[["upper"]])
+
+    paste0(
+      "$", format(round(bounds[1], -3), big.mark = ","),
+      " – $", format(round(bounds[2], -3), big.mark = ",")
+    )
   })
   
   # DT::datatable of Past Resale Tranactions with the same address
