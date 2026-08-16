@@ -40,6 +40,9 @@ load_model_data <- function(path = MODEL_DATA_PATH) {
       storey_mid,
       flat_model,
       remaining_lease_numeric,
+      # Build vintage. Near-collinear with remaining_lease by construction; kept
+      # because the trees cannot derive it from resale_year themselves.
+      lease_commence_date,
       distance_to_cbd,
       distance_to_nearest_mrt,
       resale_year,

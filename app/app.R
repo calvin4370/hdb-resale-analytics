@@ -377,6 +377,7 @@ server <- function(input, output, session) {
       floor_area_sqm = as.numeric(input$num_floor_area),
       storey_mid = storey_band_mid,
       remaining_lease_numeric = as.numeric(remaining_lease_years),
+      lease_commence_date = as.numeric(input$num_lease_start_year),
       distance_to_cbd = curr_loc_row$distance_to_cbd,
       distance_to_nearest_mrt = curr_loc_row$distance_to_nearest_mrt,
       lat = curr_loc_row$lat,
