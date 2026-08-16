@@ -8,7 +8,6 @@
 # ==============================================================================
 
 library(tidyverse)
-library(lubridate)
 
 # Read raw resale data and check dataframe structure ---------------------------
 raw_data <- read_csv("data/raw/raw_resale_prices.csv")

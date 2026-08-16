@@ -63,7 +63,7 @@ ui <- page_sidebar(
     selectizeInput(
       "sel_address", label = "Flat Address", 
       options = list(placeholder = 'Type to search'),
-      choices = NULL # Initialise choides as NULL first to enable server-side selectize later
+      choices = NULL # Initialise choices as NULL first to enable server-side selectize later
     ),
     card(
       class = "bg-light",
@@ -165,7 +165,7 @@ ui <- page_sidebar(
       full_screen = FALSE
     )
     
-    # 95% Condidence Interval
+    # 95% Confidence Interval
     # TODO
   ),
   
@@ -180,7 +180,7 @@ ui <- page_sidebar(
       plotOutput("plot_similar_sales"),
       card_footer(
         p(
-          tags$span(style = "color: blue;;", "Blue dots = Individual sales"),
+          tags$span(style = "color: blue;", "Blue dots = Individual sales"),
           " | ",
           tags$span(style = "color: red;", "Red line = Annual Average.")
         )
@@ -291,7 +291,7 @@ server <- function(input, output, session) {
   
   # Whenever EITHER input$sel_address OR input$sel_flat_type is updated, 
   # auto-fill other fields and restrict choices
-  observeEvent(c(input$sel_address, input$sel_flat_type), {
+  observeEvent(list(input$sel_address, input$sel_flat_type), {
     req(past_sales_with_same_address(), input$sel_address, input$sel_flat_type) # proceed if past data available
     data <- past_sales_with_same_address() %>% 
       filter(flat_type == input$sel_flat_type)

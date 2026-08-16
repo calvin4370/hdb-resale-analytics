@@ -18,7 +18,7 @@ df <- read_csv("data/processed/cleaned_resale_prices.csv")
 unique_addresses <- df %>%
   distinct(address)
 
-print(paste("Number of unique addresses to find:", nrow(unique_addresses)))
+message("Number of unique addresses to find: ", nrow(unique_addresses))
 
 
 # OneMap API call function -----------------------------------------------------
@@ -55,7 +55,7 @@ get_onemap_coords <- function(address) {
 
 # Call the API for every address -----------------------------------------------
 results <- list() # to store tibbles of (address, lat, long)
-print("Geocoding of addresses in progress...")
+message("Geocoding of addresses in progress...")
 
 # Show a progress bar in the console while this script is running
 total_addresses <- nrow(unique_addresses)
@@ -74,4 +74,4 @@ final_coords <- bind_rows(results) # convert list of tibbles of (address, lat, l
 glimpse(final_coords)
 output_filepath <- "data/external/hdb_coordinates.csv"
 write_csv(final_coords, output_filepath)
-print(paste("Geospatial data saved to '", output_filepath, "'", sep = ""))
+message("Geospatial data saved to ", output_filepath)
