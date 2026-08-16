@@ -22,8 +22,7 @@ source("R/models.R")
 
 dir.create("output/metrics", recursive = TRUE, showWarnings = FALSE)
 
-model_df <- load_model_data()
-split <- split_by_year(model_df)
+split <- load_split()
 
 model_map <- c(
   # Reference model, fit here rather than loaded: it is a grouped median and

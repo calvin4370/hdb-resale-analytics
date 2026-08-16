@@ -50,8 +50,7 @@ deployed_model <- readRDS(MODEL_FILES[[deployed_name]])
 message(glue::glue("Deploying: {deployed_name}"))
 
 
-model_df <- load_model_data()
-split <- split_by_year(model_df)
+split <- load_split()
 
 # Shipped with the model because the app cannot recompute it: the correction
 # is derived from training residuals, and the app never sees the training set.
@@ -116,7 +115,7 @@ model_metadata <- list(
   error_quantiles = error_quantiles,
   train_years = range(split$train$resale_year),
   training_rows = nrow(split$train),
-  predictors = setdiff(names(model_df), "log_resale_price"),
+  predictors = MODEL_PREDICTORS,
   data_through = max(raw_data$resale_date),
   built_at = Sys.time()
 )

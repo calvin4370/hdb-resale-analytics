@@ -7,6 +7,8 @@
 
 library(tidyverse)
 
+source("R/config.R")
+
 
 # Variance inflation factor for each numeric predictor, computed directly as
 # 1 / (1 - R^2) from an auxiliary regression of that predictor on every other
@@ -55,7 +57,7 @@ save_residual_diagnostics <- function(fit, train_data, prefix,
     resale_year = train_data$resale_year
   )
 
-  set.seed(123)
+  set.seed(RANDOM_SEED)
   sampled <- slice_sample(
     diagnostics,
     n = min(sample_size, nrow(diagnostics))

@@ -17,8 +17,7 @@ library(glmnet)
 source("R/prepare_model_data.R")
 source("R/tuning.R")
 
-model_df <- load_model_data()
-split <- split_by_year(model_df)
+split <- load_split()
 train_control <- make_train_control(split$train)
 
 dir.create("output/models", recursive = TRUE, showWarnings = FALSE)
@@ -32,7 +31,7 @@ ridge_grid <- expand.grid(
   lambda = seq(0.0001, 1, length = 100)
 )
 
-set.seed(123)
+set.seed(RANDOM_SEED)
 model_ridge <- train(
   log_resale_price ~ .,
   data = split$train,
@@ -57,7 +56,7 @@ lasso_grid <- expand.grid(
   lambda = seq(0.0001, 0.1, length = 100)
 )
 
-set.seed(123)
+set.seed(RANDOM_SEED)
 model_lasso <- train(
   log_resale_price ~ .,
   data = split$train,
@@ -84,7 +83,7 @@ elastic_net_grid <- expand.grid(
   lambda = seq(0.0001, 0.5, length = 20)
 )
 
-set.seed(123)
+set.seed(RANDOM_SEED)
 model_elastic_net <- train(
   log_resale_price ~ .,
   data = split$train,

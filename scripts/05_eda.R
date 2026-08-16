@@ -13,6 +13,10 @@
 library(tidyverse)
 library(ggcorrplot)
 
+# MAX_FLOOR_AREA_SQM, so the charts that justify the exclusion rule cannot
+# describe a different threshold from the one 04 applies.
+source("R/config.R")
+
 # Two datasets are read deliberately. `enriched` is the state of the data before
 # 04_build_modelling_data.R applies its exclusion rules, and is used only by the
 # health checks and by the charts that exist to justify those rules. Every other
@@ -128,7 +132,7 @@ ggsave(
 # different product from the flats being priced.
 excluded_large <- enriched %>%
   distinct() %>%
-  filter(floor_area_sqm >= 200)
+  filter(floor_area_sqm >= MAX_FLOOR_AREA_SQM)
 
 print(count(excluded_large, flat_type, flat_model, sort = TRUE))
 
@@ -141,7 +145,8 @@ hist_floor_area_raw <- ggplot(enriched, aes(x = floor_area_sqm)) +
   labs(
     title = "Distribution of Floor Area, before exclusions",
     subtitle = glue::glue(
-      "{nrow(excluded_large)} units at or above 200 sqm are terrace houses ",
+      "{nrow(excluded_large)} units at or above {MAX_FLOOR_AREA_SQM} sqm ",
+      "are terrace houses ",
       "and outsized maisonettes"
     ),
     x = "Floor Area (sqm)",
@@ -170,7 +175,7 @@ hist_floor_area_clean <- ggplot(modelling, aes(x = floor_area_sqm)) +
     x = "Floor Area (sqm)",
     y = "Count",
     caption = glue::glue(
-      "Note: {nrow(excluded_large)} rows (>= 200 sqm) excluded"
+      "Note: {nrow(excluded_large)} rows (>= {MAX_FLOOR_AREA_SQM} sqm) excluded"
     )
   )
 

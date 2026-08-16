@@ -67,7 +67,7 @@ if (length(pending) == 0) {
     setTxtProgressBar(progress_bar, i)
 
     if (i %% CHECKPOINT_EVERY == 0) flush(i)
-    Sys.sleep(0.1) # do not spam the OneMap API too quickly
+    Sys.sleep(GEOCODE_SLEEP_SECONDS) # do not spam the OneMap API too quickly
   }
 
   close(progress_bar)

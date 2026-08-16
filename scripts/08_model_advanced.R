@@ -18,8 +18,7 @@ library(doParallel)
 source("R/prepare_model_data.R")
 source("R/tuning.R")
 
-model_df <- load_model_data()
-split <- split_by_year(model_df)
+split <- load_split()
 train_control <- make_train_control(
   split$train,
   allowParallel = TRUE,
@@ -45,7 +44,7 @@ rf_grid <- expand.grid(
   min.node.size = c(5, 10)
 )
 
-set.seed(123)
+set.seed(RANDOM_SEED)
 model_random_forest <- train(
   log_resale_price ~ .,
   data = split$train,
@@ -76,7 +75,7 @@ xgboost_grid <- expand.grid(
   subsample = 0.7
 )
 
-set.seed(123)
+set.seed(RANDOM_SEED)
 model_xgboost <- train(
   log_resale_price ~ .,
   data = split$train,

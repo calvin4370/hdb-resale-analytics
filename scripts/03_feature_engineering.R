@@ -14,9 +14,7 @@
 library(tidyverse)
 library(geosphere)
 
-# Downtown Core, Singapore (1 17 16.6308 N, 103 51 6.4224 E).
-# distHaversine takes (long, lat) point order.
-CBD_COORDS <- c(103.851784, 1.287953)
+source("R/config.R")
 
 
 # Load data --------------------------------------------------------------------

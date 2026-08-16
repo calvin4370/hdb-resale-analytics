@@ -20,6 +20,7 @@ SG_LONG_RANGE <- c(103.6, 104.1)
 # OneMap is rate limited and occasionally drops a request under load.
 GEOCODE_RETRIES <- 3
 GEOCODE_PAUSE_BASE <- 0.5
+GEOCODE_SLEEP_SECONDS <- 0.1
 
 
 in_singapore <- function(lat, long) {

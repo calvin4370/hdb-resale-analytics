@@ -11,10 +11,9 @@
 
 library(tidyverse)
 
-# Flats at or above this size are HDB terrace houses and outsized maisonettes.
-# They are a distinct product from the flats the model is meant to price and are
-# too few to learn from.
-MAX_FLOOR_AREA_SQM <- 200
+# MAX_FLOOR_AREA_SQM and MODEL_PREDICTORS. Not R/prepare_model_data.R, which
+# would pull caret in for two constants.
+source("R/config.R")
 
 
 # Applies one exclusion rule and reports what it removed, so the row count of
@@ -56,13 +55,10 @@ stopifnot(
   "modelling dataset is empty" = nrow(modelling_data) > 0,
   "resale_price must be positive for log transformation" =
     all(modelling_data$resale_price > 0),
+  "modelling dataset is missing a model predictor" =
+    all(MODEL_PREDICTORS %in% names(modelling_data)),
   "unexpected missing values in model predictors" =
-    !anyNA(modelling_data[, c(
-      "town", "flat_type", "flat_model", "floor_area_sqm",
-      "storey_mid", "remaining_lease_numeric", "lease_commence_date",
-      "distance_to_cbd", "distance_to_nearest_mrt", "resale_year",
-      "lat", "long"
-    )])
+    !anyNA(modelling_data[, MODEL_PREDICTORS])
 )
 
 

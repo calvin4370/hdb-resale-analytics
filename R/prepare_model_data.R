@@ -9,6 +9,8 @@
 library(tidyverse)
 library(caret)
 
+source("R/config.R")
+
 MODEL_DATA_PATH <- "data/processed/modelling_resale_prices.csv"
 
 # Resale prices trend strongly across 2017-2025, so the holdout is defined by
@@ -32,24 +34,17 @@ load_model_data <- function(path = MODEL_DATA_PATH) {
       flat_type = as.factor(flat_type),
       flat_model = as.factor(flat_model)
     ) %>%
-    select(
-      log_resale_price,
-      town,
-      flat_type,
-      floor_area_sqm,
-      storey_mid,
-      flat_model,
-      remaining_lease_numeric,
-      # Build vintage. Near-collinear with remaining_lease by construction; kept
-      # because the trees cannot derive it from resale_year themselves.
-      lease_commence_date,
-      distance_to_cbd,
-      distance_to_nearest_mrt,
-      resale_year,
-      # Raw coordinates
-      lat,
-      long
-    )
+    # MODEL_PREDICTORS includes lease_commence_date, which is near-collinear
+    # with remaining_lease by construction; it is kept because the trees cannot
+    # derive build vintage from resale_year themselves.
+    select(all_of(c(RESPONSE, MODEL_PREDICTORS)))
+}
+
+
+# load_model_data() + split_by_year() in one call. Scripts 06-10 all need
+# exactly this and previously repeated it.
+load_split <- function(path = MODEL_DATA_PATH) {
+  split_by_year(load_model_data(path))
 }
 
 

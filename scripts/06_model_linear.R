@@ -19,8 +19,7 @@ library(caret)
 source("R/prepare_model_data.R")
 source("R/diagnostics.R")
 
-model_df <- load_model_data()
-split <- split_by_year(model_df)
+split <- load_split()
 train_control <- make_train_control(split$train)
 
 for (d in c("output/models", "output/summaries", "output/metrics",
@@ -30,7 +29,7 @@ for (d in c("output/models", "output/summaries", "output/metrics",
 
 
 # Model 1: Baseline OLS on all predictors --------------------------------------
-set.seed(123)
+set.seed(RANDOM_SEED)
 model_lm_baseline <- train(
   log_resale_price ~ .,
   data = split$train,
@@ -48,7 +47,7 @@ save_text_summary(
 
 
 # Model 2: Backward stepwise AIC feature selection -----------------------------
-set.seed(123)
+set.seed(RANDOM_SEED)
 model_lm_stepwise <- train(
   log_resale_price ~ .,
   data = split$train,
