@@ -20,18 +20,21 @@ cleaned_data <- raw_data %>%
     # Combine `block` and `street_name` into one column `address`
     address = paste(block, street_name),
     
-    # Extract the years and months parts out of remaining_lease (in form: "XX years XX months")
-    remaining_lease_years_part = as.numeric(str_extract(remaining_lease, "\\d+(?= years)")),
-    remaining_lease_months_part = as.numeric(str_extract(remaining_lease, "\\d+(?= months)")),
-    remaining_lease_months_part = replace_na(remaining_lease_months_part, 0), # may be NAs so replace with 0s
+    # Extract the years and months parts out of remaining_lease. The source
+    # writes a one-month remainder in the singular ("62 years 01 month"), so
+    # the lookahead must not require the plural — matching only " months"
+    # silently zeroes the month on 8% of rows.
+    remaining_lease_years_part = as.numeric(str_extract(remaining_lease, "\\d+(?= year)")),
+    remaining_lease_months_part = as.numeric(str_extract(remaining_lease, "\\d+(?= month)")),
+    remaining_lease_months_part = replace_na(remaining_lease_months_part, 0), # no months part at all
     
     # Convert remaining_lease to numeric form (in years)
     remaining_lease_numeric = remaining_lease_years_part + (remaining_lease_months_part / 12),
     
-    # Convert <chr> month (resale date) into <date> resale date, <dbl> resale_year and <dbl> resale_month columns
+    # Convert <chr> month (resale date) into <date> resale_date and <dbl>
+    # resale_year
     resale_date = ym(month),
-    resale_year = year(resale_date),
-    resale_month = month(resale_date)
+    resale_year = year(resale_date)
   ) %>%
 
   # Storey is banded (e.g. "01 TO 03"). Model on the band midpoint and keep the
@@ -46,11 +49,17 @@ cleaned_data <- raw_data %>%
     storey_mid = (as.numeric(storey_lower) + as.numeric(storey_upper)) / 2
   ) %>%
 
+  # Intermediates, plus the source columns that have been superseded: `month`
+  # by resale_date, `remaining_lease` by its numeric form, and `block` by
+  # `address`. Nothing downstream of this script reads them.
   select(
     -remaining_lease_years_part,
     -remaining_lease_months_part,
     -storey_lower,
-    -storey_upper
+    -storey_upper,
+    -month,
+    -block,
+    -remaining_lease
   )
 
 
