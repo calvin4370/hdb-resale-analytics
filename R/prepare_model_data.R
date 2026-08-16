@@ -42,7 +42,10 @@ load_model_data <- function(path = MODEL_DATA_PATH) {
       remaining_lease_numeric,
       distance_to_cbd,
       distance_to_nearest_mrt,
-      resale_year
+      resale_year,
+      # Raw coordinates
+      lat,
+      long
     )
 }
 

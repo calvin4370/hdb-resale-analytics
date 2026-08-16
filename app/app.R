@@ -35,6 +35,8 @@ df <- read_csv("data/processed/modelling_resale_prices.csv") %>%
     storey_range_floored,
     distance_to_cbd,
     distance_to_nearest_mrt,
+    lat,
+    long,
     lease_commence_date,
     resale_price,
     resale_year,
@@ -55,6 +57,8 @@ address_lookup <- df %>%
     town = first(town),
     distance_to_cbd = first(distance_to_cbd),
     distance_to_nearest_mrt = first(distance_to_nearest_mrt),
+    lat = first(lat),
+    long = first(long),
     .groups = "drop" # turn off the group_by
   )
 
@@ -345,6 +349,8 @@ server <- function(input, output, session) {
       remaining_lease_numeric = as.numeric(remaining_lease_years),
       distance_to_cbd = curr_loc_row$distance_to_cbd,
       distance_to_nearest_mrt = curr_loc_row$distance_to_nearest_mrt,
+      lat = curr_loc_row$lat,
+      long = curr_loc_row$long,
       resale_year = CURRENT_YEAR
     )
     
