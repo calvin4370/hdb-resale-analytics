@@ -61,8 +61,20 @@ ui <- page_sidebar(
     # ---------- Sidebar Content ---------- #
     # Address input
     selectizeInput(
-      "sel_address", label = "Flat Address", 
-      options = list(placeholder = 'Type to search'),
+      "sel_address", label = "Flat Address",
+      options = list(
+        placeholder = "Type to search",
+        # Default is a bare "No results found", which reads as a broken search
+        # rather than the coverage limit it actually is.
+        render = I(
+          "{ no_results: function(data, escape) {
+               return '<div class=\"no-results\" style=\"padding:8px;\">' +
+                      'No match for <strong>' + escape(data.input) + '</strong>.' +
+                      '<br>Only blocks with a resale since 2017 can be priced.' +
+                      '</div>';
+             } }"
+        )
+      ),
       choices = NULL # Initialise choices as NULL first to enable server-side selectize later
     ),
     card(
@@ -143,6 +155,18 @@ ui <- page_sidebar(
         tags$li("Flats that have not met the Minimum Occupation Period (MOP) (5-10 years)."),
         tags$li("Short-lease 2-Room Flexi Flats (Must be returned to HDB)."),
         tags$li("Rental Flats.")
+      ),
+      # Separate from the eligibility list above: this is a limit of the data,
+      # not a rule about which flats may be sold.
+      p(
+        class = "mb-0", style = "margin-top: 8px;",
+        strong("Coverage."),
+        glue::glue(
+          " Only the {format(nrow(address_lookup), big.mark = ',')} blocks with ",
+          "a recorded resale since 2017 can be priced. A block that has never ",
+          "been resold — a recently completed BTO, for instance — will not ",
+          "appear in the address list."
+        )
       )
     ),
     
