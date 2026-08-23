@@ -1,0 +1,5 @@
+model,parameter,chosen,grid_min,grid_max,grid_size,at_edge
+Ridge,lambda,0.0203,1e-4,1,100,NA
+Lasso,lambda,0.0011090909090909092,1e-4,0.1,100,NA
+Elastic Net,alpha,0.5555555555555556,0,1,10,NA
+Elastic Net,lambda,1e-4,1e-4,0.5,20,lower

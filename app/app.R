@@ -1,15 +1,24 @@
 # ==============================================================================
 # Shiny App for HDB Resale Price Prediction
-# - Uses the trained XGBoost model
+# - Serves whichever model 09_compare_models.R selected on cross-validated
+#   error, bundled by 10_build_app_bundle.R
 # ==============================================================================
 
 library(shiny)
 library(bslib) # for modern shiny apps (Bootstrap 5)
 library(bsicons) # for Bootstrap icons
 library(tidyverse)
-library(xgboost) # needed to run the trained xgboost model
-library(caret) # needed to run caret::predict on the caret trained xgboost model
+library(caret) # predict() dispatches through the caret train object
 library(DT) # for datatable and formatCurrency
+
+# Every engine a deployed model might come from. The winner is not known until
+# 09 runs, and predict() needs its package loaded. Declared statically rather
+# than looked up from the metadata because rsconnect decides what to install on
+# shinyapps.io by scanning library() calls — a dynamic load would deploy an app
+# that cannot serve its own model.
+library(xgboost)
+library(ranger)
+library(glmnet)
 
 
 # ==============================================================================
@@ -19,47 +28,35 @@ library(DT) # for datatable and formatCurrency
 # Load and prepare data --------------------------------------------------------
 # Must be in the same structure (factors for categorical variables) as the
 # modelling df used to train the xgboost model
-df <- read_csv("data/processed/modelling_resale_prices.csv") %>%
-  mutate(
-    town = as.factor(town),
-    flat_type = as.factor(flat_type),
-    flat_model = as.factor(flat_model),
-    storey_range = paste0(sprintf("%02d", storey_range_floored), " TO ", sprintf("%02d", storey_range_floored + 2))
-  ) %>%
-  select(
-    town,
-    flat_type,
-    flat_model,
-    address,
-    storey_range,
-    storey_range_floored,
-    distance_to_cbd,
-    distance_to_nearest_mrt,
-    lease_commence_date,
-    resale_price,
-    resale_year,
-    floor_area_sqm
-  )
+# Built by scripts/10_build_app_bundle.R from the trained artifacts. Reading
+# prepared .rds files rather than parsing the full modelling CSV keeps factor
+# levels identical to the ones the model was trained on, and cuts cold start
+# from a 47 MB parse to a few megabytes.
+df <- readRDS("data/transactions.rds")
+address_lookup <- readRDS("data/address_lookup.rds")
+model_metadata <- readRDS("data/model_metadata.rds")
+
+# The year the app prices at. Taken from the bundle rather than hardcoded, so
+# rebuilding on fresher data moves it without a code edit. Note this is the last
+# year in the data, not the last year the model was trained on — pricing at
+# today's date means extrapolating past the training window on purpose.
+CURRENT_YEAR <- as.integer(format(model_metadata$data_through, "%Y"))
 
 # Get unique values for dropdown menus
-town_choices <- levels(df$town)
 flat_type_choices <- levels(df$flat_type)
 flat_model_choices <- levels(df$flat_model)
-address_choices <- levels(df$address)
 
-
-# Lookup table of (UNIQUE address, and its town, distance_to_cbd, distance_to_nearest_mrt)
-address_lookup <- df %>%
-  group_by(address) %>%
-  summarise(
-    town = first(town),
-    distance_to_cbd = first(distance_to_cbd),
-    distance_to_nearest_mrt = first(distance_to_nearest_mrt),
-    .groups = "drop" # turn off the group_by
-  )
+# Input bounds taken from the training data, so the app cannot ask the model
+# for a prediction outside the range it was fitted on.
+floor_area_bounds <- range(df$floor_area_sqm)
+lease_start_bounds <- c(
+  max(min(df$lease_commence_date), MIN_LEASE_START_YEAR),
+  CURRENT_YEAR
+)
+max_storey <- max(df$storey_mid)
 
 # Load Model from app/models
-model_xgboost <- readRDS("models/model_xgboost.rds")
+model_deployed <- readRDS("models/model_deployed.rds")
 
 
 # ==============================================================================
@@ -79,9 +76,21 @@ ui <- page_sidebar(
     # ---------- Sidebar Content ---------- #
     # Address input
     selectizeInput(
-      "sel_address", label = "Flat Address", 
-      options = list(placeholder = 'Type to search'),
-      choices = NULL # Initialise choides as NULL first to enable server-side selectize later
+      "sel_address", label = "Flat Address",
+      options = list(
+        placeholder = "Type to search",
+        # Default is a bare "No results found", which reads as a broken search
+        # rather than the coverage limit it actually is.
+        render = I(
+          "{ no_results: function(data, escape) {
+               return '<div class=\"no-results\" style=\"padding:8px;\">' +
+                      'No match for <strong>' + escape(data.input) + '</strong>.' +
+                      '<br>Only blocks with a resale since 2017 can be priced.' +
+                      '</div>';
+             } }"
+        )
+      ),
+      choices = NULL # Initialise choices as NULL first to enable server-side selectize later
     ),
     card(
       class = "bg-light",
@@ -105,25 +114,31 @@ ui <- page_sidebar(
     
     # Floor Area input
     numericInput(
-      "num_floor_area", 
-      label = "Floor Area (sqm)", 
-      value = NULL
+      "num_floor_area",
+      label = "Floor Area (sqm)",
+      value = NULL,
+      min = floor_area_bounds[1],
+      max = floor_area_bounds[2],
+      step = 1
     ),
-    
+
     # Storey Level input
     sliderInput(
-      "sld_storey_level", 
-      label = "Storey Level", 
-      min = 1, 
-      max = 50, 
+      "sld_storey_level",
+      label = "Storey Level",
+      min = 1,
+      max = max_storey,
       value = 1
     ),
-    
+
     # Lease Start Year
     numericInput(
-      "num_lease_start_year", 
-      label = "Lease Start Year", 
-      value = NULL
+      "num_lease_start_year",
+      label = "Lease Start Year",
+      value = NULL,
+      min = lease_start_bounds[1],
+      max = lease_start_bounds[2],
+      step = 1
     ),
     
     hr(),
@@ -155,6 +170,18 @@ ui <- page_sidebar(
         tags$li("Flats that have not met the Minimum Occupation Period (MOP) (5-10 years)."),
         tags$li("Short-lease 2-Room Flexi Flats (Must be returned to HDB)."),
         tags$li("Rental Flats.")
+      ),
+      # Separate from the eligibility list above: this is a limit of the data,
+      # not a rule about which flats may be sold.
+      p(
+        class = "mb-0", style = "margin-top: 8px;",
+        strong("Coverage."),
+        glue::glue(
+          " Only the {format(nrow(address_lookup), big.mark = ',')} blocks with ",
+          "a recorded resale since 2017 can be priced. A block that has never ",
+          "been resold — a recently completed BTO, for instance — will not ",
+          "appear in the address list."
+        )
       )
     ),
     
@@ -175,10 +202,15 @@ ui <- page_sidebar(
       showcase = bs_icon("graph-up-arrow"),
       theme = "primary",
       full_screen = FALSE
+    ),
+
+    value_box(
+      title = textOutput("txt_interval_title"),
+      value = textOutput("txt_predicted_interval"),
+      showcase = bs_icon("arrows-expand-vertical"),
+      theme = "secondary",
+      full_screen = FALSE
     )
-    
-    # 95% Condidence Interval
-    # TODO
   ),
   
   # Big card with navigation tabs
@@ -192,7 +224,7 @@ ui <- page_sidebar(
       plotOutput("plot_similar_sales"),
       card_footer(
         p(
-          tags$span(style = "color: blue;;", "Blue dots = Individual sales"),
+          tags$span(style = "color: blue;", "Blue dots = Individual sales"),
           " | ",
           tags$span(style = "color: red;", "Red line = Annual Average.")
         )
@@ -224,6 +256,17 @@ ui <- page_sidebar(
         href = "https://github.com/calvin4370/hdb-resale-analytics",
         target = "_blank", # open in a new tab to not disrupt the Shiny App
         "Github"
+      )
+    ),
+    # Stated so a stale bundle is visible rather than silent.
+    p(
+      class = "mb-0",
+      sprintf(
+        "Model: %s, trained on %d-%d transactions. Data through %s.",
+        model_metadata$model_name,
+        model_metadata$train_years[1],
+        model_metadata$train_years[2],
+        format(model_metadata$data_through, "%b %Y")
       )
     )
   )
@@ -277,31 +320,39 @@ server <- function(input, output, session) {
     data <- past_sales_with_same_address()
     
     # Set input$num_lease_start_year to most common Lease Start Year from data
-    most_common_lease_start_year <- as.numeric(names(sort(table(data$lease_commence_date), decreasing=TRUE)[1]))
-    updateNumericInput(session, "num_lease_start_year", value = most_common_lease_start_year)
-    
+    updateNumericInput(
+      session, "num_lease_start_year",
+      value = most_common(data$lease_commence_date)
+    )
+
     # Restrict input$sel_flat_type to seen choices in past data and set to most common available
-    available_flat_types <- sort(unique(data$flat_type))
-    most_common_flat_type <- names(sort(table(data$flat_type), decreasing=TRUE)[1])
-    updateSelectInput(session, "sel_flat_type", choices = available_flat_types, selected = most_common_flat_type)
+    updateSelectInput(
+      session, "sel_flat_type",
+      choices = sort(unique(data$flat_type)),
+      selected = most_common(data$flat_type)
+    )
   })
   
   # Whenever EITHER input$sel_address OR input$sel_flat_type is updated, 
   # auto-fill other fields and restrict choices
-  observeEvent(c(input$sel_address, input$sel_flat_type), {
+  observeEvent(list(input$sel_address, input$sel_flat_type), {
     req(past_sales_with_same_address(), input$sel_address, input$sel_flat_type) # proceed if past data available
     data <- past_sales_with_same_address() %>% 
       filter(flat_type == input$sel_flat_type)
     
-    # Set input$num_floor_area to most common available for the given flat_type AND flat_model
-    # and restrict input$sel_flat_model to seen choices in past data and set to most common available
-    if(nrow(data) > 0) {
-      most_common_floor_area <- sort(unique(data$floor_area_sqm, na.rm = TRUE))[1]
-      updateNumericInput(session, "num_floor_area", value = most_common_floor_area)
-      
-      available_flat_models <- sort(unique(data$flat_model))
-      most_common_flat_model <- names(sort(table(data$flat_model), decreasing=TRUE)[1])
-      updateSelectInput(session, "sel_flat_model", choices = available_flat_models, selected = most_common_flat_model)
+    # Pre-fill floor area and flat model with the most common values seen at
+    # this address for the chosen flat type.
+    if (nrow(data) > 0) {
+      updateNumericInput(
+        session, "num_floor_area",
+        value = most_common(data$floor_area_sqm)
+      )
+
+      updateSelectInput(
+        session, "sel_flat_model",
+        choices = sort(unique(data$flat_model)),
+        selected = most_common(data$flat_model)
+      )
     }
   })
   
@@ -330,9 +381,36 @@ server <- function(input, output, session) {
     # on address through our lookup table
     curr_loc_row <- current_location_row()
     
+    # Browser-side min/max on numericInput is advisory only, so the same bounds
+    # are enforced here. Outside them the model would be extrapolating beyond
+    # the data it was fitted on.
+    validate(
+      need(
+        is.finite(input$num_floor_area) &&
+          between(input$num_floor_area, floor_area_bounds[1],
+                  floor_area_bounds[2]),
+        glue::glue(
+          "Enter a floor area between {floor_area_bounds[1]} and ",
+          "{floor_area_bounds[2]} sqm."
+        )
+      ),
+      need(
+        is.finite(input$num_lease_start_year) &&
+          between(input$num_lease_start_year, lease_start_bounds[1],
+                  lease_start_bounds[2]),
+        glue::glue(
+          "Enter a lease start year between {lease_start_bounds[1]} and ",
+          "{lease_start_bounds[2]}."
+        )
+      )
+    )
+
     # Calculate other model input data for user input fields
     remaining_lease_years <- MAX_LEASE_YEARS - (CURRENT_YEAR - input$num_lease_start_year)
-    storey_range_lower_bound <- (floor((as.numeric(input$sld_storey_level) - 1) / 3) * 3) + 1
+    # Snap the chosen storey to the midpoint of its 3-storey band, matching
+    # how storey is recorded in the transaction data.
+    storey_band_mid <-
+      (floor((as.numeric(input$sld_storey_level) - 1) / 3) * 3) + 2
     
     # Create a data.frame (1 ROW) of input hdb data
     # NOTE: MUST be in same structure as the df used to train the model
@@ -341,15 +419,30 @@ server <- function(input, output, session) {
       flat_type = factor(input$sel_flat_type, levels = levels(df$flat_type)),
       flat_model = factor(input$sel_flat_model, levels = levels(df$flat_model)),
       floor_area_sqm = as.numeric(input$num_floor_area),
-      storey_range_floored = storey_range_lower_bound,
+      storey_mid = storey_band_mid,
       remaining_lease_numeric = as.numeric(remaining_lease_years),
+      lease_commence_date = as.numeric(input$num_lease_start_year),
       distance_to_cbd = curr_loc_row$distance_to_cbd,
       distance_to_nearest_mrt = curr_loc_row$distance_to_nearest_mrt,
+      lat = curr_loc_row$lat,
+      long = curr_loc_row$long,
       resale_year = CURRENT_YEAR
     )
     
-    # Return model's prediction of REAL resale price
-    exp(predict(model_xgboost, input_data))
+    # Smearing correction from the training residuals. exp() alone returns the
+    # geometric mean, which sits below the mean price the user is asking about.
+    predicted_price <- tryCatch(
+      exp(predict(model_deployed, input_data)) *
+        model_metadata$smearing_factor,
+      error = function(e) NULL
+    )
+
+    validate(need(
+      length(predicted_price) == 1 && is.finite(predicted_price),
+      "No prediction available for this combination of flat details."
+    ))
+
+    predicted_price
   })
   
   
@@ -378,6 +471,28 @@ server <- function(input, output, session) {
     
     price <- predicted_resale_price()
     paste0("$", format(round(price, -3), big.mark = ",")) # round to nearest $1,000
+  })
+
+  # Empirical band from the cross-validation residuals of the deployed model,
+  # widened or narrowed per flat type. Multiplicative, because the model is fit
+  # on log price and its error scales with the price level.
+  output$txt_interval_title <- renderText({
+    probs <- model_metadata$error_quantiles$probs
+    paste0(round(100 * (probs[2] - probs[1])), "% Range")
+  })
+
+  output$txt_predicted_interval <- renderText({
+    req(predicted_resale_price(), input$sel_flat_type)
+
+    band <- error_band_for(
+      model_metadata$error_quantiles, input$sel_flat_type
+    )
+    bounds <- predicted_resale_price() * c(band[["lower"]], band[["upper"]])
+
+    paste0(
+      "$", format(round(bounds[1], -3), big.mark = ","),
+      " – $", format(round(bounds[2], -3), big.mark = ",")
+    )
   })
   
   # DT::datatable of Past Resale Tranactions with the same address

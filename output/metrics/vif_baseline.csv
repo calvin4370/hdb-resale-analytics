@@ -1,0 +1,10 @@
+predictor,aux_r_squared,vif
+lease_commence_date,0.9992,1303.73
+remaining_lease_numeric,0.9992,1284.85
+long,0.986,71.3
+lat,0.9857,69.87
+distance_to_cbd,0.9783,46.06
+resale_year,0.9696,32.86
+floor_area_sqm,0.9545,21.99
+distance_to_nearest_mrt,0.4115,1.7
+storey_mid,0.2077,1.26

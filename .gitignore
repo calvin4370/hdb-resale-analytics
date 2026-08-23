@@ -2,6 +2,27 @@
 # Model artifacts
 output/models/*.rds
 
+# Stage timings from run_all.R. Machine-specific, so not worth tracking.
+output/pipeline_timings.csv
+
+# Console capture from a run_all.R invocation.
+run.log
+
+# Dated extracts from 00_download_data.R. Only the snapshot is tracked; these
+# exist to be compared against it before a deliberate replacement.
+data/raw/raw_resale_prices_*.csv
+
+# Default graphics device file created when Rscript prints a plot
+Rplots.pdf
+
+# Derived data. Rebuilt by scripts 01, 03 and 04 from data/raw and
+# data/external, both of which are tracked, so a clone can regenerate these
+# without re-running the geocoding.
+data/processed/
+
+# App bundle, rebuilt from the canonical artifacts rather than hand-copied.
+app/data/
+
 # Auto-added by Git for R: -----------------------------------------------------
 # History files
 .Rhistory

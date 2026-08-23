@@ -1,0 +1,7 @@
+* text=auto
+
+*.rds binary
+*.png binary
+
+renv/activate.R linguist-vendored
+output/figures/** linguist-generated

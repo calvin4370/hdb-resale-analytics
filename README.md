@@ -138,7 +138,7 @@ Models were compared using the following metrics:
 
 ## Live Web App
 
-An interactive **R Shiny** web app is available for users to input details of any HDB flat eligible for resale on the Opne Resale Market, and see the prediction for the resale price if the flat were sold in Dec 2025.
+An interactive **R Shiny** web app is available for users to input details of any HDB flat eligible for resale on the Open Resale Market, and see the prediction for the resale price if the flat were sold in Dec 2025.
 
 The app also shows a plot and table of past resale transactions of resale flats of the same type, model and address for users to compare the prediction with past sales.
 
