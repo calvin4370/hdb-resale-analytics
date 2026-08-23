@@ -37,7 +37,7 @@ cleaned_data <- raw_data %>%
     resale_year = year(resale_date)
   ) %>%
 
-  # Storey is banded (e.g. "01 TO 03"). Model on the band midpoint and keep the
+  # Storey range column is banded (e.g. "01 TO 03"). Model on the band midpoint and keep the
   # original string for display.
   separate_wider_delim(
     storey_range,

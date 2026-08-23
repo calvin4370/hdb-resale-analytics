@@ -1,90 +1,92 @@
-> print(model_lm_baseline)
 Linear Regression 
 
-175885 samples
-     9 predictor
+196674 samples
+    12 predictor
 
 No pre-processing
 Resampling: Cross-Validated (10 fold) 
-Summary of sample sizes: 158297, 158296, 158296, 158296, 158297, 158297, ... 
+Summary of sample sizes: 64052, 87365, 116417, 143119, 168859 
 Resampling results:
 
-  RMSE       Rsquared   MAE      
-  0.1037061  0.9103384  0.0805853
+  RMSE      Rsquared   MAE      
+  0.126902  0.9125508  0.1044875
 
 Tuning parameter 'intercept' was held constant at a value of TRUE
-> summary(model_lm_baseline$finalModel)
 
 Call:
 lm(formula = .outcome ~ ., data = dat)
 
 Residuals:
      Min       1Q   Median       3Q      Max 
--1.23255 -0.06684 -0.00029  0.06436  0.82539 
+-1.21458 -0.06903 -0.00028  0.06642  0.80629 
 
 Coefficients: (1 not defined because of singularities)
                                      Estimate Std. Error  t value Pr(>|t|)    
-(Intercept)                        -1.212e+02  2.054e-01 -589.820  < 2e-16 ***
-townBEDOK                          -1.652e-02  1.670e-03   -9.892  < 2e-16 ***
-townBISHAN                          1.240e-01  2.404e-03   51.591  < 2e-16 ***
-`townBUKIT BATOK`                  -5.761e-02  2.257e-03  -25.525  < 2e-16 ***
-`townBUKIT MERAH`                   4.074e-02  2.592e-03   15.719  < 2e-16 ***
-`townBUKIT PANJANG`                -1.760e-01  2.507e-03  -70.222  < 2e-16 ***
-`townBUKIT TIMAH`                   2.756e-01  5.101e-03   54.036  < 2e-16 ***
-`townCENTRAL AREA`                  2.806e-02  4.371e-03    6.419 1.37e-10 ***
-`townCHOA CHU KANG`                -1.721e-01  2.825e-03  -60.922  < 2e-16 ***
-townCLEMENTI                        7.904e-02  2.089e-03   37.829  < 2e-16 ***
-townGEYLANG                        -4.508e-02  2.360e-03  -19.104  < 2e-16 ***
-townHOUGANG                        -9.082e-02  1.764e-03  -51.489  < 2e-16 ***
-`townJURONG EAST`                  -1.027e-02  2.566e-03   -4.002 6.27e-05 ***
-`townJURONG WEST`                  -4.453e-02  2.998e-03  -14.852  < 2e-16 ***
-`townKALLANG/WHAMPOA`              -3.879e-02  2.593e-03  -14.959  < 2e-16 ***
-`townMARINE PARADE`                 4.015e-01  3.731e-03  107.597  < 2e-16 ***
-`townPASIR RIS`                     5.719e-03  2.631e-03    2.174 0.029727 *  
-townPUNGGOL                        -1.595e-01  2.377e-03  -67.100  < 2e-16 ***
-townQUEENSTOWN                      9.289e-02  2.286e-03   40.628  < 2e-16 ***
-townSEMBAWANG                      -9.902e-02  3.517e-03  -28.154  < 2e-16 ***
-townSENGKANG                       -2.224e-01  1.996e-03 -111.390  < 2e-16 ***
-townSERANGOON                       5.626e-02  2.327e-03   24.179  < 2e-16 ***
-townTAMPINES                        1.226e-02  2.012e-03    6.093 1.11e-09 ***
-`townTOA PAYOH`                    -1.193e-02  2.274e-03   -5.246 1.55e-07 ***
-townWOODLANDS                      -9.529e-02  3.245e-03  -29.365  < 2e-16 ***
-townYISHUN                         -3.781e-02  2.560e-03  -14.768  < 2e-16 ***
-`flat_type2 ROOM`                   5.120e-02  1.363e-02    3.757 0.000172 ***
-`flat_type3 ROOM`                   1.853e-01  1.360e-02   13.628  < 2e-16 ***
-`flat_type4 ROOM`                   2.490e-01  1.383e-02   18.005  < 2e-16 ***
-`flat_type5 ROOM`                   2.678e-01  1.418e-02   18.886  < 2e-16 ***
-flat_typeEXECUTIVE                  2.448e-01  1.467e-02   16.691  < 2e-16 ***
-`flat_typeMULTI-GENERATION`         3.208e-01  2.053e-02   15.631  < 2e-16 ***
-floor_area_sqm                      8.431e-03  4.839e-05  174.243  < 2e-16 ***
-storey_range_floored                7.689e-03  4.671e-05  164.590  < 2e-16 ***
-flat_model3Gen                     -9.189e-02  1.527e-02   -6.017 1.78e-09 ***
-`flat_modelAdjoined flat`           3.828e-02  8.925e-03    4.289 1.79e-05 ***
-flat_modelApartment                 2.020e-02  7.148e-03    2.826 0.004711 ** 
-flat_modelDBSS                      1.141e-01  6.715e-03   16.988  < 2e-16 ***
-flat_modelImproved                 -5.033e-02  6.457e-03   -7.794 6.50e-15 ***
-`flat_modelImproved-Maisonette`     2.319e-01  2.138e-02   10.847  < 2e-16 ***
-flat_modelMaisonette                6.096e-02  7.194e-03    8.474  < 2e-16 ***
-`flat_modelModel A`                -3.919e-02  6.381e-03   -6.141 8.19e-10 ***
-`flat_modelModel A-Maisonette`      9.006e-02  8.725e-03   10.321  < 2e-16 ***
-`flat_modelModel A2`               -3.315e-02  6.822e-03   -4.859 1.18e-06 ***
+(Intercept)                        -1.139e+02  2.932e+00  -38.861  < 2e-16 ***
+townBEDOK                          -5.593e-02  3.305e-03  -16.922  < 2e-16 ***
+townBISHAN                          1.186e-01  2.331e-03   50.879  < 2e-16 ***
+`townBUKIT BATOK`                  -9.448e-02  3.917e-03  -24.122  < 2e-16 ***
+`townBUKIT MERAH`                  -1.232e-02  3.989e-03   -3.089 0.002012 ** 
+`townBUKIT PANJANG`                -1.861e-01  3.258e-03  -57.116  < 2e-16 ***
+`townBUKIT TIMAH`                   2.415e-01  5.557e-03   43.468  < 2e-16 ***
+`townCENTRAL AREA`                 -4.180e-03  4.598e-03   -0.909 0.363328    
+`townCHOA CHU KANG`                -1.947e-01  3.898e-03  -49.939  < 2e-16 ***
+townCLEMENTI                        3.218e-02  4.216e-03    7.634 2.29e-14 ***
+townGEYLANG                        -7.710e-02  2.901e-03  -26.576  < 2e-16 ***
+townHOUGANG                        -1.053e-01  2.045e-03  -51.491  < 2e-16 ***
+`townJURONG EAST`                  -5.763e-02  4.660e-03  -12.367  < 2e-16 ***
+`townJURONG WEST`                  -1.017e-01  5.645e-03  -18.016  < 2e-16 ***
+`townKALLANG/WHAMPOA`              -6.432e-02  2.769e-03  -23.230  < 2e-16 ***
+`townMARINE PARADE`                 3.289e-01  4.660e-03   70.580  < 2e-16 ***
+`townPASIR RIS`                    -2.517e-02  4.028e-03   -6.249 4.13e-10 ***
+townPUNGGOL                        -1.614e-01  2.936e-03  -54.956  < 2e-16 ***
+townQUEENSTOWN                      4.760e-02  3.753e-03   12.684  < 2e-16 ***
+townSEMBAWANG                      -8.516e-02  3.823e-03  -22.274  < 2e-16 ***
+townSENGKANG                       -2.284e-01  2.351e-03  -97.142  < 2e-16 ***
+townSERANGOON                       3.919e-02  2.305e-03   16.999  < 2e-16 ***
+townTAMPINES                       -2.208e-02  3.701e-03   -5.966 2.44e-09 ***
+`townTOA PAYOH`                    -3.662e-02  2.329e-03  -15.726  < 2e-16 ***
+townWOODLANDS                      -8.089e-02  3.557e-03  -22.741  < 2e-16 ***
+townYISHUN                         -2.673e-02  2.737e-03   -9.764  < 2e-16 ***
+`flat_type2 ROOM`                   5.231e-02  1.244e-02    4.204 2.63e-05 ***
+`flat_type3 ROOM`                   1.854e-01  1.241e-02   14.945  < 2e-16 ***
+`flat_type4 ROOM`                   2.485e-01  1.264e-02   19.663  < 2e-16 ***
+`flat_type5 ROOM`                   2.667e-01  1.299e-02   20.533  < 2e-16 ***
+flat_typeEXECUTIVE                  2.417e-01  1.347e-02   17.950  < 2e-16 ***
+`flat_typeMULTI-GENERATION`         3.160e-01  1.976e-02   15.997  < 2e-16 ***
+floor_area_sqm                      8.512e-03  4.620e-05  184.229  < 2e-16 ***
+storey_mid                          7.762e-03  4.478e-05  173.340  < 2e-16 ***
+flat_model3Gen                     -8.421e-02  1.743e-02   -4.831 1.36e-06 ***
+`flat_modelAdjoined flat`           3.684e-02  1.019e-02    3.616 0.000299 ***
+flat_modelApartment                 1.962e-02  8.845e-03    2.218 0.026569 *  
+flat_modelDBSS                      1.154e-01  8.557e-03   13.484  < 2e-16 ***
+flat_modelImproved                 -5.140e-02  8.376e-03   -6.137 8.44e-10 ***
+`flat_modelImproved-Maisonette`     2.119e-01  2.156e-02    9.827  < 2e-16 ***
+flat_modelMaisonette                6.040e-02  8.881e-03    6.802 1.04e-11 ***
+`flat_modelModel A`                -4.107e-02  8.323e-03   -4.934 8.05e-07 ***
+`flat_modelModel A-Maisonette`      9.155e-02  1.011e-02    9.059  < 2e-16 ***
+`flat_modelModel A2`               -3.217e-02  8.639e-03   -3.724 0.000196 ***
 `flat_modelMulti Generation`               NA         NA       NA       NA    
-`flat_modelNew Generation`         -1.080e-02  6.487e-03   -1.666 0.095803 .  
-`flat_modelPremium Apartment`      -1.839e-02  6.446e-03   -2.852 0.004340 ** 
-`flat_modelPremium Apartment Loft` -7.634e-03  1.250e-02   -0.610 0.541566    
-`flat_modelPremium Maisonette`      3.858e-02  2.769e-02    1.393 0.163628    
-flat_modelSimplified               -4.881e-03  6.583e-03   -0.741 0.458399    
-flat_modelStandard                 -4.918e-02  6.646e-03   -7.400 1.37e-13 ***
-flat_modelTerrace                   6.460e-01  1.341e-02   48.183  < 2e-16 ***
-`flat_modelType S1`                 1.170e-01  9.470e-03   12.350  < 2e-16 ***
-`flat_modelType S2`                 9.778e-02  1.113e-02    8.789  < 2e-16 ***
-remaining_lease_numeric             1.035e-02  3.088e-05  335.091  < 2e-16 ***
-distance_to_cbd                    -2.274e-02  3.156e-04  -72.029  < 2e-16 ***
-distance_to_nearest_mrt            -1.321e-01  8.508e-04 -155.264  < 2e-16 ***
-resale_year                         6.572e-02  1.010e-04  650.599  < 2e-16 ***
+`flat_modelNew Generation`         -1.078e-02  8.397e-03   -1.284 0.199217    
+`flat_modelPremium Apartment`      -1.976e-02  8.367e-03   -2.362 0.018169 *  
+`flat_modelPremium Apartment Loft` -1.706e-02  1.314e-02   -1.299 0.194059    
+`flat_modelPremium Maisonette`      2.012e-02  3.040e-02    0.662 0.508114    
+flat_modelSimplified               -5.171e-03  8.465e-03   -0.611 0.541264    
+flat_modelStandard                 -4.731e-02  8.511e-03   -5.558 2.73e-08 ***
+flat_modelTerrace                   6.671e-01  1.362e-02   48.980  < 2e-16 ***
+`flat_modelType S1`                 7.449e-02  1.075e-02    6.928 4.29e-12 ***
+`flat_modelType S2`                 5.901e-02  1.211e-02    4.874 1.10e-06 ***
+remaining_lease_numeric            -1.942e-02  6.030e-04  -32.210  < 2e-16 ***
+lease_commence_date                 2.989e-02  6.038e-04   49.507  < 2e-16 ***
+distance_to_cbd                    -1.908e-02  3.680e-04  -51.862  < 2e-16 ***
+distance_to_nearest_mrt            -1.247e-01  7.933e-04 -157.130  < 2e-16 ***
+resale_year                         3.317e-02  6.021e-04   55.100  < 2e-16 ***
+lat                                -8.087e-01  4.612e-02  -17.536  < 2e-16 ***
+long                                2.057e-02  2.810e-02    0.732 0.464169    
 ---
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-Residual standard error: 0.1037 on 175828 degrees of freedom
-Multiple R-squared:  0.9104,	Adjusted R-squared:  0.9104 
-F-statistic: 3.19e+04 on 56 and 175828 DF,  p-value: < 2.2e-16
+Residual standard error: 0.1049 on 196614 degrees of freedom
+Multiple R-squared:  0.9053,	Adjusted R-squared:  0.9052 
+F-statistic: 3.185e+04 on 59 and 196614 DF,  p-value: < 2.2e-16
+
