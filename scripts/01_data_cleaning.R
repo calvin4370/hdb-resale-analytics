@@ -68,4 +68,5 @@ glimpse(cleaned_data)
 
 
 # Save cleaned csv
+dir.create("data/processed", recursive = TRUE, showWarnings = FALSE)
 write_csv(cleaned_data, "data/processed/cleaned_resale_prices.csv")
