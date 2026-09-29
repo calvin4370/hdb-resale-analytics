@@ -177,7 +177,7 @@ ui <- page_sidebar(
         class = "mb-0", style = "margin-top: 8px;",
         strong("Coverage."),
         glue::glue(
-          " Only the {format(nrow(address_lookup), big.mark = ',')} blocks with ",
+          " Only the {format(nrow(address_lookup), big.mark = ',', scientific = FALSE)} blocks with ",
           "a recorded resale since 2017 can be priced. A block that has never ",
           "been resold — a recently completed BTO, for instance — will not ",
           "appear in the address list."
@@ -470,7 +470,7 @@ server <- function(input, output, session) {
     req(predicted_resale_price())
     
     price <- predicted_resale_price()
-    paste0("$", format(round(price, -3), big.mark = ",")) # round to nearest $1,000
+    paste0("$", format(round(price, -3), big.mark = ",", scientific = FALSE)) # round to nearest $1,000
   })
 
   # Empirical prediction interval from the cross-validation residuals of the deployed model,
@@ -490,8 +490,8 @@ server <- function(input, output, session) {
     bounds <- predicted_resale_price() * c(band[["lower"]], band[["upper"]])
 
     paste0(
-      "$", format(round(bounds[1], -3), big.mark = ","),
-      " – $", format(round(bounds[2], -3), big.mark = ",")
+      "$", format(round(bounds[1], -3), big.mark = ",", scientific = FALSE),
+      " – $", format(round(bounds[2], -3), big.mark = ",", scientific = FALSE)
     )
   })
   
