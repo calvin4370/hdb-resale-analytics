@@ -473,12 +473,12 @@ server <- function(input, output, session) {
     paste0("$", format(round(price, -3), big.mark = ",")) # round to nearest $1,000
   })
 
-  # Empirical band from the cross-validation residuals of the deployed model,
+  # Empirical prediction interval from the cross-validation residuals of the deployed model,
   # widened or narrowed per flat type. Multiplicative, because the model is fit
   # on log price and its error scales with the price level.
   output$txt_interval_title <- renderText({
     probs <- model_metadata$error_quantiles$probs
-    paste0(round(100 * (probs[2] - probs[1])), "% Range")
+    paste0(round(100 * (probs[2] - probs[1])), "% Prediction Interval")
   })
 
   output$txt_predicted_interval <- renderText({
