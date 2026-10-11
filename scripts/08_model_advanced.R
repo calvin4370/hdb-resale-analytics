@@ -22,7 +22,6 @@ source("R/tuning.R")
 # and its own forest — 15 of those exhausted 31 GB and killed the run. ranger
 # and xgboost both thread internally over one shared copy instead, which uses
 # the same cores at a fraction of the memory.
-N_THREADS <- max(1, parallel::detectCores() - 2)
 message(glue::glue("Using {N_THREADS} threads within a single R session"))
 
 split <- load_split()

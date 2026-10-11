@@ -40,3 +40,6 @@ MAX_FLOOR_AREA_SQM <- 200
 
 # Fixed so a rerun reproduces the same fits.
 RANDOM_SEED <- 42
+
+# Threads for ranger and xgboost, leaving two cores free.
+N_THREADS <- max(1, parallel::detectCores() - 2)

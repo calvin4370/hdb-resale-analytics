@@ -4,7 +4,8 @@
 # DATE:    2026-08-16
 # PURPOSE: Build everything the Shiny app serves from the canonical artifacts.
 #          The only script permitted to write into app/, so the deployed model
-#          and data cannot drift from the trained ones.
+#          and data cannot drift from the trained ones. The model selected in
+#          09 is refit on all years before it is shipped.
 # INPUTS:  1. data/processed/modelling_resale_prices.csv
 #          2. output/models/*.rds
 #          3. output/metrics/cv_comparison.csv
@@ -46,18 +47,45 @@ if (!deployed_name %in% names(MODEL_FILES)) {
   )
 }
 
-deployed_model <- readRDS(MODEL_FILES[[deployed_name]])
+selected_model <- readRDS(MODEL_FILES[[deployed_name]])
 message(glue::glue("Deploying: {deployed_name}"))
 
 
-split <- load_split()
+# Refit on every year, test years included, with the hyperparameters chosen in
+# cross-validation. Trees cannot extrapolate past their latest training year,
+# and the app prices at the latest month in the data. The folds extend through
+# the test years so the prediction interval reflects the most recent market.
+full_data <- load_model_data()
+
+refit_args <- list(
+  "Random Forest" = list(
+    num.trees = 500, importance = "impurity", num.threads = N_THREADS
+  ),
+  "XGBoost" = list(nthread = N_THREADS)
+)
+
+set.seed(RANDOM_SEED)
+deployed_model <- do.call(train, c(
+  list(
+    form = log_resale_price ~ .,
+    data = full_data,
+    method = selected_model$method,
+    tuneGrid = selected_model$bestTune,
+    trControl = make_train_control(
+      full_data,
+      validation_years = c(CV_VALIDATION_YEARS, TEST_YEARS),
+      allowParallel = FALSE
+    )
+  ),
+  refit_args[[deployed_name]]
+))
 
 # Shipped with the model because the app cannot recompute it: the correction
 # is derived from training residuals, and the app never sees the training set.
-smear <- smearing_factor(deployed_model, split$train)
+smear <- smearing_factor(deployed_model, full_data)
 
-# Band multipliers for the app, from the cross-validation folds.
-error_quantiles <- cv_error_quantiles(deployed_model, split$train, smear)
+# Interval multipliers for the app, from the cross-validation folds.
+error_quantiles <- cv_error_quantiles(deployed_model, full_data, smear)
 
 message(glue::glue(
   "Prediction band: global {round(error_quantiles$global[['lower']], 3)}x to ",
@@ -113,8 +141,8 @@ model_metadata <- list(
   model_name = deployed_name,
   smearing_factor = smear,
   error_quantiles = error_quantiles,
-  train_years = range(split$train$resale_year),
-  training_rows = nrow(split$train),
+  train_years = range(full_data$resale_year),
+  training_rows = nrow(full_data),
   predictors = MODEL_PREDICTORS,
   data_through = max(raw_data$resale_date),
   built_at = Sys.time()
