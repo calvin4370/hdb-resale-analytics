@@ -67,11 +67,9 @@ score_predictions <- function(actual, predicted) {
 # counting it twice.
 #
 # Every fold validates one year beyond its own training window, so this is a
-# one-year-ahead band. The app predicts further ahead than that, which makes
-# these bounds optimistic — see the note in the app disclaimer.
+# one-year-ahead band.
 #
-# Requires trainControl(savePredictions = "final"). UNVERIFIED: no model on disk
-# was fitted with it, so this cannot run until the retrain.
+# Requires trainControl(savePredictions = "final").
 cv_error_quantiles <- function(model, train_data, smear,
                                probs = c(0.1, 0.9), min_rows = 500) {
   if (is.null(model$pred)) {

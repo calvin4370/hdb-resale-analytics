@@ -81,7 +81,7 @@ Hyperparameters are tuned and models are compared with five expanding-window fol
 | 4 | 2017–2022 | 2023 |
 | 5 | 2017–2023 | 2024 |
 
-The best model is selected on **cross-validated RMSE**, and only that model is scored on the test set.
+The best model is selected on **cross-validated RMSE**, and only that model is scored on the test set. After evaluation, it is refit on every year from 2017 to Aug 2026 with the same tuned hyperparameters, so the deployed app reflects the latest prices.
 
 ### Target Transformation
 Resale prices are right-skewed, so models are trained on log price. Predictions are transformed back to SGD with **Duan's smearing correction**, which removes the downward bias of a plain `exp()` back-transform.

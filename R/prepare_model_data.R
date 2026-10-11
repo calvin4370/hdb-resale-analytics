@@ -88,8 +88,9 @@ make_time_folds <- function(train_df, validation_years = CV_VALIDATION_YEARS) {
 
 # trainControl shared by every model script. Extra arguments (allowParallel,
 # verboseIter) are passed through.
-make_train_control <- function(train_df, ...) {
-  folds <- make_time_folds(train_df)
+make_train_control <- function(train_df,
+                               validation_years = CV_VALIDATION_YEARS, ...) {
+  folds <- make_time_folds(train_df, validation_years)
 
   message(glue::glue(
     "CV fold {seq_along(folds$index)}: ",
